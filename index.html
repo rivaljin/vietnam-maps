@@ -28,6 +28,7 @@
       --transit: #f47a24;
       --sight: #d84a27;
       --food: #ff9a1f;
+      --spa: #9b59b6;
       --focus: rgba(239, 75, 47, .22);
       --shadow: 0 20px 54px rgba(34, 35, 29, .13);
       --serif: "AppleMyungjo", "Iowan Old Style", "Times New Roman", serif;
@@ -49,6 +50,7 @@
         --transit: #ff8b35;
         --sight: #e85b35;
         --food: #ffad38;
+        --spa: #b07cc6;
         --focus: rgba(255, 104, 72, .24);
         --shadow: 0 20px 58px rgba(0, 0, 0, .34);
       }
@@ -280,6 +282,7 @@
         <button class="filter" type="button" data-category="transit" aria-pressed="false">Transit / 이동</button>
         <button class="filter" type="button" data-category="sight" aria-pressed="false">Sightseeing / 관광</button>
         <button class="filter" type="button" data-category="food" aria-pressed="false">Food / 음식</button>
+        <button class="filter" type="button" data-category="spa" aria-pressed="false">Spa / 스파·마사지</button>
       </div>
     </section>
 
@@ -1422,7 +1425,8 @@ var MapHelpers = (() => {
         stay: { label: 'Stay / 숙소', color: 'var(--stay)' },
         transit: { label: 'Transit / 이동', color: 'var(--transit)' },
         sight: { label: 'Sightseeing / 관광', color: 'var(--sight)' },
-        food: { label: 'Food / 음식', color: 'var(--food)' }
+        food: { label: 'Food / 음식', color: 'var(--food)' },
+        spa: { label: 'Spa / 스파·마사지', color: 'var(--spa)' }
       };
       var regionMeta = { hanoi: 'Hanoi / 하노이', sapa: 'Sapa & Nearby / 사파·근교' };
       var places = [
@@ -1451,7 +1455,12 @@ var MapHelpers = (() => {
         { n: 23, label: 'Rồng Mây Glass Bridge', labelKo: '롱마이 유리다리', venue: 'Rồng Mây Glass Bridge', address: 'Tam Đường', locality: 'Lai Châu', country: 'Vietnam', lat: 22.37242, lng: 103.75757, cat: 'sight', region: 'sapa', mode: 'driving', note: 'Located outside Sapa in Lai Châu / 사파 시내 밖 라이쩌우성에 위치' },
         { n: 24, label: 'Souvenir Store Hà Phương', labelKo: '하프엉 기념품 가게', venue: 'Souvenir Store Hà Phương', address: '1 Hàng Bè', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0337055, lng: 105.8539016, cat: 'sight', region: 'hanoi', mode: 'walking', note: 'Souvenir shop known for friendly owner and fair prices (Ate Ha) / 기념품 가게, 사장님이 후하기로 유명' },
         { n: 25, label: 'Trấn Quốc Pagoda', labelKo: '쩐꾸옥 사원', venue: 'Chùa Trấn Quốc', address: '46 Thanh Niên', locality: 'Tây Hồ, Hà Nội', country: 'Vietnam', lat: 21.047871, lng: 105.8368738, cat: 'sight', region: 'hanoi', mode: 'driving', note: 'Oldest pagoda in Hanoi on West Lake island / 서호 위 하노이 최고(最古) 사찰, 4.4점·리뷰 4.7만, 점심시간 11:00-13:30 휴무' },
-        { n: 26, label: 'MẸT Vietnamese Restaurant', labelKo: '멧 베트남 식당', venue: 'MẸT Vietnamese Restaurant & Vegetarian', address: '42 P. Lương Văn Can', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0327, lng: 105.8506, cat: 'food', region: 'hanoi', mode: 'walking', note: 'Wife\'s pick: 4.9 rating, 30k reviews, praised friendly staff / 와이프 추천! 4.9점·리뷰 3만개, 스태프 친절 호평' }
+        { n: 26, label: 'MẸT Vietnamese Restaurant', labelKo: '멧 베트남 식당', venue: 'MẸT Vietnamese Restaurant & Vegetarian', address: '42 P. Lương Văn Can', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0327, lng: 105.8506, cat: 'food', region: 'hanoi', mode: 'walking', note: 'Wife\'s pick: 4.9 rating, 30k reviews, praised friendly staff / 와이프 추천! 4.9점·리뷰 3만개, 스태프 친절 호평' },
+        { n: 27, label: 'La Belle Vie Spa', labelKo: '라벨비 스파', venue: 'La Belle Vie Spa', address: '48 P. Lương Văn Can', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.032747, lng: 105.850428, cat: 'spa', region: 'hanoi', mode: 'walking', note: '4.9 (9,807 reviews). Premium spa, clean facilities. 60-min body 690K-990K VND. / 프리미엄 스파, 깨끗한 시설. 60분 전신 69만-99만동' },
+        { n: 28, label: 'HANOI OLD QUARTER SPA', labelKo: '하노이 올드쿼터 스파', venue: 'HANOI OLD QUARTER SPA', address: '18 P. Hàng Mành', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.031887, lng: 105.848241, cat: 'spa', region: 'hanoi', mode: 'walking', note: '4.9 (2,608 reviews). Best value, 60-min body 390K-430K VND, 10% off 10am-1pm. / 가성비 최고, 60분 전신 39만-43만동, 오전 10시-1시 10% 할인' },
+        { n: 29, label: 'Omamori Spa Old Quarter', labelKo: '오마모리 스파 올드쿼터', venue: 'Omamori Spa Old Quarter', address: '48 Ng. Huyện', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.029426, lng: 105.848362, cat: 'spa', region: 'hanoi', mode: 'walking', note: '4.8 (2,358 reviews). Social enterprise with visually impaired therapists. Female therapist available on request. 60-min 350K-500K VND. / 시각장애인 마사지사 사회적 기업. 여자 마사지사 요청 가능. 60분 35만-50만동' },
+        { n: 30, label: "Hoang's Spa", labelKo: '호앙 스파', venue: "Hoang's Spa", address: '3 Hàng Điếu', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.033566, lng: 105.847157, cat: 'spa', region: 'hanoi', mode: 'walking', note: '4.9 (1,331 reviews). Popular add-ons: pedicure, hair wash. 60-min 550K-730K VND. / 페디·머리감기 등 부가 서비스 인기. 60분 55만-73만동' },
+        { n: 31, label: 'Spas Hanoi', labelKo: '스파스 하노이', venue: 'Spas Hanoi', address: '189 P. Hàng Bông', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.028924, lng: 105.844750, cat: 'spa', region: 'hanoi', mode: 'walking', note: '4.8 (3,164 reviews). Popular foot massage. 60-min body 450K VND. / 발마사지 인기. 60분 전신 45만동' }
       ];
 
       // Dynamic counts: computed from places so they never go stale
