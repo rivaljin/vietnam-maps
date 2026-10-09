@@ -150,6 +150,7 @@
     .place-name { margin: 0; font-size: 16px; line-height: 1.42; font-weight: 800; letter-spacing: -.02em; overflow-wrap: anywhere; }
     .category { color: var(--cat); font-size: 12px; font-weight: 800; white-space: nowrap; }
     .address { color: var(--muted); margin: 5px 0 11px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+    .note { margin: -2px 0 10px; color: var(--muted); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
     .card-actions { display: flex; flex-wrap: wrap; gap: 7px; width: 100%; min-width: 0; max-width: 100%; }
     .map-link {
       display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; max-width: 100%; padding: 0 12px;
@@ -1239,14 +1240,15 @@ maplibre-gl/dist/maplibre-gl.js:
       var places = [
         { n: 1, label: 'Huyền Hương Chicken Phở', venue: 'Huyền Hương Chicken Phở', address: '20 P. Báo Khánh', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03010365, lng: 105.85044925, cat: 'noodle' },
         { n: 2, label: 'Chả Cá Thăng Long', venue: 'Chả Cá Thăng Long', address: '6B Đường Thành', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03307, lng: 105.84606, cat: 'local' },
-        { n: 3, label: 'Bún Chả Lằu Gất Gụ', venue: 'Bún Chả Lằu Gất Gụ', address: '41–43 P. Hàng Bè', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03275442, lng: 105.85388191, cat: 'buncha' },
+        { n: 3, label: 'Bún Chả Lằu Gất Gụ', venue: 'Bún Chả Lằu Gất Gụ', address: '41–43 P. Hàng Bè', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03275442, lng: 105.85388191, cat: 'buncha', note: '와이프 3순위! 평점 4.9 유지, 분짜+스프링롤 호평 / Wife\'s #3 pick: 4.9 rating, praised bun cha & spring rolls' },
         { n: 4, label: 'Bún chả ngon', venue: 'Bún chả ngon', address: '4 P. Nguyễn Siêu', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03671958, lng: 105.85217094, cat: 'buncha' },
         { n: 5, label: 'Bún chả CỘI phố cổ', venue: 'Bún chả CỘI', address: '57 P. Nguyễn Hữu Huân', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03297915, lng: 105.85461795, cat: 'buncha' },
-        { n: 6, label: 'Bánh Mì 25', venue: 'Bánh Mì 25', address: '25 P. Hàng Cá', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03612875, lng: 105.84857958, cat: 'banhmi' },
-        { n: 7, label: 'Phở 10 Lý Quốc Sư', venue: 'Phở 10 Lý Quốc Sư', address: '10 P. Lý Quốc Sư', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0305125, lng: 105.84881938, cat: 'noodle' },
+        { n: 6, label: 'Bánh Mì 25', venue: 'Bánh Mì 25', address: '25 P. Hàng Cá', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03612875, lng: 105.84857958, cat: 'banhmi', note: '와이프 1순위! 바삭한 바게트+풍부한 속재료, 저렴. 대기 줄 길 수 있음 / Wife\'s #1 pick: crispy baguette, generous fillings, cheap. Long queues common' },
+        { n: 7, label: 'Phở 10 Lý Quốc Sư', venue: 'Phở 10 Lý Quốc Sư', address: '10 P. Lý Quốc Sư', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0305125, lng: 105.84881938, cat: 'noodle', note: '와이프 2순위. 구수한 전통 국물, 미슐랭 빕구르망 / Wife\'s #2: savory traditional broth, Michelin Bib Gourmand' },
         { n: 8, label: 'Phở Gà Nguyệt', venue: 'Phở Gà Nguyệt', address: '5B P. Phủ Doãn', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.03018493, lng: 105.84759876, cat: 'noodle' },
         { n: 9, label: 'Hiệu Lực — Canh cá rô Hưng Yên', venue: 'Hiệu Lực — Canh cá rô Hưng Yên', address: '39 Hai Bà Trưng', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.02535788, lng: 105.84886117, cat: 'noodle' },
-        { n: 10, label: 'Tầm Vị', venue: 'Tầm Vị', address: '4B P. Yên Thế', locality: 'Ba Đình, Hà Nội', country: 'Vietnam', lat: 21.02902476, lng: 105.83945465, cat: 'special' }
+        { n: 10, label: 'Tầm Vị', venue: 'Tầm Vị', address: '4B P. Yên Thế', locality: 'Ba Đình, Hà Nội', country: 'Vietnam', lat: 21.02902476, lng: 105.83945465, cat: 'special', note: '미슐랭 1스타. 최근 리뷰는 긍정적, 과거 저평가가 평점 하락 요인. 현장에서 결정 / Michelin 1-star. Recent reviews positive; old low ratings drag the score. Decide on site' },
+        { n: 11, label: 'MẸT Vietnamese Restaurant', venue: 'MẸT Vietnamese Restaurant & Vegetarian', address: '42 P. Lương Văn Can', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0327, lng: 105.8506, cat: 'local', note: '와이프 추천! 4.9점·리뷰 3만개, 스태프 친절 호평 / Wife\'s pick: 4.9 rating, 30k reviews, praised friendly staff' }
       ];
 
       var activeFilter = 'all';
@@ -1326,6 +1328,7 @@ maplibre-gl/dist/maplibre-gl.js:
             '<div><div class="card-top"><h2 class="place-name">' + escapeHtml(place.label) + '</h2>' +
             '<span class="category">' + escapeHtml(categoryMeta[place.cat].label) + '</span></div>' +
             '<p class="address">' + escapeHtml(place.address + ', ' + place.locality) + '</p>' +
+            (place.note ? '<p class="note">' + escapeHtml(place.note) + '</p>' : '') +
             '<div class="card-actions">' + actionLink(searchable, 'Open Map / 지도', true) + actionLink(walking, 'Walking / 도보', false) + actionLink(driving, 'Driving / 차량', false) + '</div>' +
             (place.unresolved ? '<span class="unresolved">Opens an address search / 주소 검색으로 연결됩니다.</span>' : '') + '</div>';
           list.appendChild(card);
