@@ -253,7 +253,7 @@
   <main class="page">
     <section class="intro" aria-labelledby="page-title">
       <div>
-        <h1 id="page-title">Hanoi to Sapa,<br>26 places / 하노이에서 사파까지</h1>
+        <h1 id="page-title">Hanoi to Sapa,<br><span id="total-count">26</span> places / 하노이에서 사파까지</h1>
         <p class="lead">Browse airports, stays, bus stops, sights, and food by area, then open directions. / 공항·숙소·버스 승강장·관광지·식당을 지역별로 보고 바로 길찾기를 열 수 있습니다.</p>
       </div>
       <div class="trip-count" aria-label="Place count by area / 지역별 장소 수">
@@ -270,8 +270,8 @@
         </label>
         <div class="segments" id="regions" aria-label="Area / 지역">
           <button class="segment" type="button" data-region="all" aria-pressed="true">All / 전체</button>
-          <button class="segment" type="button" data-region="hanoi" aria-pressed="false">Hanoi / 하노이 20</button>
-          <button class="segment" type="button" data-region="sapa" aria-pressed="false">Sapa &amp; Nearby / 사파·근교 6</button>
+          <button class="segment" type="button" data-region="hanoi" aria-pressed="false">Hanoi / 하노이 <span data-region-count="hanoi">20</span></button>
+          <button class="segment" type="button" data-region="sapa" aria-pressed="false">Sapa &amp; Nearby / 사파·근교 <span data-region-count="sapa">6</span></button>
         </div>
       </div>
       <div class="filters" id="categories" aria-label="Category / 종류">
@@ -1453,6 +1453,19 @@ var MapHelpers = (() => {
         { n: 25, label: 'Trấn Quốc Pagoda', labelKo: '쩐꾸옥 사원', venue: 'Chùa Trấn Quốc', address: '46 Thanh Niên', locality: 'Tây Hồ, Hà Nội', country: 'Vietnam', lat: 21.047871, lng: 105.8368738, cat: 'sight', region: 'hanoi', mode: 'driving', note: 'Oldest pagoda in Hanoi on West Lake island / 서호 위 하노이 최고(最古) 사찰, 4.4점·리뷰 4.7만, 점심시간 11:00-13:30 휴무' },
         { n: 26, label: 'MẸT Vietnamese Restaurant', labelKo: '멧 베트남 식당', venue: 'MẸT Vietnamese Restaurant & Vegetarian', address: '42 P. Lương Văn Can', locality: 'Hoàn Kiếm, Hà Nội', country: 'Vietnam', lat: 21.0327, lng: 105.8506, cat: 'food', region: 'hanoi', mode: 'walking', note: 'Wife\'s pick: 4.9 rating, 30k reviews, praised friendly staff / 와이프 추천! 4.9점·리뷰 3만개, 스태프 친절 호평' }
       ];
+
+      // Dynamic counts: computed from places so they never go stale
+      (function updateCounts() {
+        var total = places.length;
+        var byRegion = {};
+        places.forEach(function (p) { byRegion[p.region] = (byRegion[p.region] || 0) + 1; });
+        var totalEl = document.getElementById('total-count');
+        if (totalEl) totalEl.textContent = total;
+        Array.from(document.querySelectorAll('[data-region-count]')).forEach(function (el) {
+          var r = el.getAttribute('data-region-count');
+          if (byRegion[r] != null) el.textContent = byRegion[r];
+        });
+      })();
 
       var activeRegion = 'all';
       var activeCategory = 'all';
