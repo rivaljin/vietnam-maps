@@ -93,7 +93,17 @@ const CATS=[
 ];
 let sel='식비', cur='VND';
 const KEY='trip_expenses_v1';
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+const SEED=[
+ {date:'2026-10-22',cat:'항공권',item:'파라타항공 WE271+WE274 왕복 (남피)',amt:350800,cur:'KRW'},
+ {date:'2026-10-22',cat:'항공권',item:'파라타항공 WE271+WE274 왕복 (와이피)',amt:350800,cur:'KRW'},
+ {date:'2026-10-22',cat:'숙소',item:'22 Land 71 Hang Bong Hotel',amt:55409,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'울란지 MT95 미니 삼각대',amt:13849,cur:'KRW'},
+ {date:'2026-09-22',cat:'기타',item:'텔레신 0.9M 셀카봉',amt:20489,cur:'KRW'},
+ {date:'2026-09-30',cat:'기타',item:'DJI Pocket 4 어댑터 베이스',amt:14209,cur:'KRW'},
+ {date:'2026-09-14',cat:'기타',item:'PULUZ 카메라 가방',amt:11051,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'여행용 정리 가방 세트',amt:21700,cur:'KRW'}
+];
+function load(){try{const raw=localStorage.getItem(KEY);if(raw===null){localStorage.setItem(KEY,JSON.stringify(SEED));return SEED.slice()}return JSON.parse(raw)||[]}catch(e){return[]}}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
 function fmt(n){return Number(n).toLocaleString('en-US')}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
