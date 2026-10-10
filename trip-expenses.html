@@ -109,7 +109,9 @@ const SEED=[
  {date:'2026-10-01',cat:'기타',item:'휴대용 보관 가방',amt:2650,cur:'KRW'},
  {date:'2026-10-01',cat:'기타',item:'데이터 케이블 보관 가방',amt:1900,cur:'KRW'},
  {date:'2026-10-01',cat:'기타',item:'크로스바디 여행용 정리 가방',amt:8150,cur:'KRW'},
- {date:'2026-10-01',cat:'기타',item:'USB 3 키체인 케이블',amt:2400,cur:'KRW'}
+ {date:'2026-10-01',cat:'기타',item:'USB 3 키체인 케이블',amt:2400,cur:'KRW'},
+ {date:'',cat:'기타',item:'DJI Feiyu 연장봉',amt:7250,cur:'KRW'},
+ {date:'',cat:'기타',item:'텔레신 Pocket4 크로스바디 케이스',amt:23027,cur:'KRW'}
 ];
 function load(){try{const raw=localStorage.getItem(KEY);if(raw===null){localStorage.setItem(KEY,JSON.stringify(SEED));return SEED.slice()}return JSON.parse(raw)||[]}catch(e){return[]}}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
