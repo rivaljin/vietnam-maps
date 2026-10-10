@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>여행 경비 가계부</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f5f5f7;color:#1d1d1f;padding:16px;max-width:600px;margin:0 auto}
+h1{font-size:22px;margin-bottom:4px}
+.sub{color:#86868b;font-size:13px;margin-bottom:16px}
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+label{display:block;font-size:13px;color:#86868b;margin-bottom:6px}
+input[type=text],input[type=number],input[type=date]{width:100%;padding:12px;border:1px solid #d2d2d7;border-radius:10px;font-size:16px;margin-bottom:12px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.cat{padding:12px 4px;border:2px solid #e5e5ea;border-radius:12px;background:#fff;font-size:14px;text-align:center;cursor:pointer}
+.cat small{display:block;font-size:10px;color:#86868b}
+.cat.on{border-color:#0071e3;background:#e8f1fd;font-weight:700}
+.cur{display:flex;gap:8px;margin-bottom:12px}
+.cur button{flex:1;padding:12px;border:2px solid #e5e5ea;border-radius:12px;background:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.cur button.on{border-color:#0071e3;background:#e8f1fd;color:#0071e3}
+.add{width:100%;padding:16px;background:#0071e3;color:#fff;border:none;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer}
+.add:active{background:#0058b0}
+.entry{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.entry:last-child{border:none}
+.chip{font-size:11px;padding:3px 8px;border-radius:20px;color:#fff;margin-right:8px;white-space:nowrap}
+.info{flex:1;min-width:0}
+.info .item{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info .date{font-size:12px;color:#86868b}
+.amt{font-size:15px;font-weight:700;white-space:nowrap}
+.del{background:none;border:none;color:#ff3b30;font-size:20px;padding:4px 8px;cursor:pointer}
+.totals{font-size:15px}
+.totals .row{display:flex;justify-content:space-between;padding:6px 0}
+.totals .grand{border-top:2px solid #1d1d1f;margin-top:6px;padding-top:10px;font-weight:800;font-size:17px}
+.btns{display:flex;gap:8px}
+.btns button{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+.copy{background:#34c759;color:#fff}
+.clear{background:#ff3b30;color:#fff}
+.empty{text-align:center;color:#86868b;padding:24px;font-size:14px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:12px 20px;border-radius:24px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<h1>✈️ 여행 경비 가계부</h1>
+<div class="sub">Trip Expense Tracker · 쓸 때마다 바로 기록</div>
+
+<div class="card">
+<label>날짜 Date</label>
+<input type="date" id="date">
+<label>카테고리 Category</label>
+<div class="cats" id="cats"></div>
+<label>항목 Item <span style="font-size:11px">(예: 반미 25)</span></label>
+<input type="text" id="item" placeholder="뭐 샀어?">
+<label>금액 Amount</label>
+<div class="cur">
+<button id="curVND" class="on" onclick="setCur('VND')">₫ VND</button>
+<button id="curKRW" onclick="setCur('KRW')">₩ KRW</button>
+</div>
+<input type="number" id="amt" placeholder="금액 입력" inputmode="numeric">
+<button class="add" onclick="add()">＋ 추가하기</button>
+</div>
+
+<div class="card">
+<label>합계 Totals</label>
+<div class="totals" id="totals"></div>
+</div>
+
+<div class="card">
+<label>기록 목록 Entries</label>
+<div id="list"></div>
+</div>
+
+<div class="card">
+<div class="btns">
+<button class="copy" onclick="copySum()">📋 요약 복사</button>
+<button class="clear" onclick="clearAll()">🗑 전체 삭제</button>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS=[
+ {k:'식비',e:'Food',c:'#ff9500'},
+ {k:'교통',e:'Transport',c:'#34c759'},
+ {k:'입장료',e:'Tickets',c:'#af52de'},
+ {k:'쇼핑',e:'Shopping',c:'#ff2d55'},
+ {k:'마사지',e:'Massage',c:'#ff6482'},
+ {k:'숙소',e:'Stay',c:'#5e5ce6'},
+ {k:'항공권',e:'Flight',c:'#0a84ff'},
+ {k:'기타',e:'Other',c:'#8e8e93'}
+];
+let sel='식비', cur='VND';
+const KEY='trip_expenses_v1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
+function fmt(n){return Number(n).toLocaleString('en-US')}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function setCur(c){cur=c;document.getElementById('curVND').classList.toggle('on',c==='VND');document.getElementById('curKRW').classList.toggle('on',c==='KRW')}
+function renderCats(){
+ const el=document.getElementById('cats');el.innerHTML='';
+ CATS.forEach(o=>{const d=document.createElement('div');d.className='cat'+(o.k===sel?' on':'');d.innerHTML=o.k+'<small>'+o.e+'</small>';d.onclick=()=>{sel=o.k;renderCats()};el.appendChild(d)});
+}
+function add(){
+ const date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
+ const item=document.getElementById('item').value.trim();
+ const amt=parseFloat(document.getElementById('amt').value);
+ if(!item){toast('항목을 입력해줘');return}
+ if(!amt||amt<=0){toast('금액을 입력해줘');return}
+ const d=load();d.push({date,cat:sel,item,amt,cur});
+ save(d);document.getElementById('item').value='';document.getElementById('amt').value='';
+ render();toast('기록됐어 ✓');
+}
+function del(i){if(!confirm('이 기록을 삭제할까?'))return;const d=load();d.splice(i,1);save(d);render()}
+function clearAll(){if(!confirm('전부 삭제할까? 되돌릴 수 없어!'))return;if(!confirm('정말로 다 지울까?'))return;save([]);render();toast('다 지웠어')}
+function catColor(k){const o=CATS.find(c=>c.k===k);return o?o.c:'#8e8e93'}
+function render(){
+ const d=load();
+ const list=document.getElementById('list');
+ if(!d.length){list.innerHTML='<div class="empty">아직 기록이 없어<br>위에서 추가해봐!</div>'}
+ else{list.innerHTML='';d.forEach((e,i)=>{
+  const div=document.createElement('div');div.className='entry';
+  div.innerHTML='<span class="chip" style="background:'+catColor(e.cat)+'">'+e.cat+'</span><div class="info"><div class="item">'+esc(e.item)+'</div><div class="date">'+e.date+'</div></div><div class="amt">'+(e.cur==='VND'?'₫':'₩')+fmt(e.amt)+'</div><button class="del" onclick="del('+i+')">×</button>';
+  list.appendChild(div);
+ });}
+ const tV={},tK={};let sV=0,sK=0;
+ d.forEach(e=>{if(e.cur==='VND'){tV[e.cat]=(tV[e.cat]||0)+e.amt;sV+=e.amt}else{tK[e.cat]=(tK[e.cat]||0)+e.amt;sK+=e.amt}});
+ let h='';
+ Object.keys(tV).forEach(k=>{h+='<div class="row"><span>'+k+'</span><span>₫'+fmt(tV[k])+'</span></div>'});
+ Object.keys(tK).forEach(k=>{h+='<div class="row"><span>'+k+'</span><span>₩'+fmt(tK[k])+'</span></div>'});
+ if(!h)h='<div class="empty" style="padding:8px">기록이 없어</div>';
+ h+='<div class="grand"><div class="row"><span>총합 Total</span><span>₫'+fmt(sV)+' / ₩'+fmt(sK)+'</span></div></div>';
+ document.getElementById('totals').innerHTML=h;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function copySum(){
+ const d=load();if(!d.length){toast('기록이 없어');return}
+ const g={};
+ d.forEach(e=>{const k=e.cat+' ('+e.cur+')';g[k]=g[k]||[];g[k].push(e)});
+ let t='🧾 하노이·사파 여행 경비\n\n';
+ Object.keys(g).forEach(k=>{t+='['+k+']\n';let s=0;g[k].forEach(e=>{t+='- '+e.item+': '+(e.cur==='VND'?'₫':'₩')+fmt(e.amt)+' ('+e.date+')\n';s+=e.amt});t+='소계: '+(g[k][0].cur==='VND'?'₫':'₩')+fmt(s)+'\n\n'});
+ let sV=0,sK=0;d.forEach(e=>{e.cur==='VND'?sV+=e.amt:sK+=e.amt});
+ t+='━━━━━━━━\n총합: ₫'+fmt(sV)+' / ₩'+fmt(sK);
+ navigator.clipboard.writeText(t).then(()=>toast('요약 복사됐어 ✓')).catch(()=>toast('복사 실패'));
+}
+document.getElementById('date').value=new Date().toISOString().slice(0,10);
+renderCats();render();
+</script>
+</body>
+</html>
