@@ -100,11 +100,16 @@ const SEED=[
  {date:'2026-10-24',cat:'숙소',item:'Pistachio Hotel Sapa (10/23~10/25)',amt:199138,cur:'KRW'},
  {date:'2026-10-24',cat:'교통',item:'HK Buslines 하노이→사파 00:30',amt:55814,cur:'KRW'},
  {date:'2026-10-25',cat:'교통',item:'사파→노이바이공항 14:30',amt:49786,cur:'KRW'},
- {date:'2026-10-01',cat:'기타',item:'울란지 MT95 미니 삼각대',amt:13849,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'울란지 MT95 미니 삼각대',amt:15250,cur:'KRW'},
  {date:'2026-09-22',cat:'기타',item:'텔레신 0.9M 셀카봉',amt:20489,cur:'KRW'},
- {date:'2026-09-30',cat:'기타',item:'DJI Pocket 4 어댑터 베이스',amt:14209,cur:'KRW'},
+ {date:'2026-09-30',cat:'기타',item:'Flymile Pocket 4 어댑터',amt:14209,cur:'KRW'},
  {date:'2026-09-14',cat:'기타',item:'PULUZ 카메라 가방',amt:11051,cur:'KRW'},
- {date:'2026-10-01',cat:'기타',item:'여행용 정리 가방 세트',amt:21700,cur:'KRW'}
+ {date:'2026-10-01',cat:'기타',item:'여행용 정리함 세트',amt:4400,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'텔레신 블루투스 리모컨',amt:17900,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'휴대용 보관 가방',amt:2650,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'데이터 케이블 보관 가방',amt:1900,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'크로스바디 여행용 정리 가방',amt:8150,cur:'KRW'},
+ {date:'2026-10-01',cat:'기타',item:'USB 3 키체인 케이블',amt:2400,cur:'KRW'}
 ];
 function load(){try{const raw=localStorage.getItem(KEY);if(raw===null){localStorage.setItem(KEY,JSON.stringify(SEED));return SEED.slice()}return JSON.parse(raw)||[]}catch(e){return[]}}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
