@@ -111,7 +111,13 @@ const SEED=[
  {date:'2026-10-01',cat:'기타',item:'크로스바디 여행용 정리 가방',amt:8150,cur:'KRW'},
  {date:'2026-10-01',cat:'기타',item:'USB 3 키체인 케이블',amt:2400,cur:'KRW'},
  {date:'',cat:'기타',item:'DJI Feiyu 연장봉',amt:7250,cur:'KRW'},
- {date:'',cat:'기타',item:'텔레신 Pocket4 크로스바디 케이스',amt:23027,cur:'KRW'}
+ {date:'',cat:'기타',item:'텔레신 Pocket4 크로스바디 케이스',amt:23027,cur:'KRW'},
+ {date:'2026-10-01',cat:'통신',item:'도시락eSIM 베트남 2인',amt:14640,cur:'KRW'},
+ {date:'2026-10-02',cat:'기타',item:'Extendable Retractable Holders x2 (와이피)',amt:2300,cur:'KRW'},
+ {date:'2026-10-02',cat:'기타',item:'Magnetic Mini Selfie Stick Tripod (와이피)',amt:7150,cur:'KRW'},
+ {date:'2026-10-02',cat:'기타',item:'울란지 MT71 마그네틱 미니 셀카봉 (와이피)',amt:18556,cur:'KRW'},
+ {date:'2026-09-26',cat:'기타',item:'BRDRC Magnetic Quick Release 마운트 (와이피)',amt:30397,cur:'KRW'},
+ {date:'2026-10-02',cat:'기타',item:'울란지 MT-44M 1.49M 맥세이프 삼각대 (와이피/배송중)',amt:32600,cur:'KRW'}
 ];
 function load(){try{const raw=localStorage.getItem(KEY);if(raw===null){localStorage.setItem(KEY,JSON.stringify(SEED));return SEED.slice()}return JSON.parse(raw)||[]}catch(e){return[]}}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
