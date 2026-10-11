@@ -117,7 +117,8 @@ const SEED=[
  {date:'2026-10-02',cat:'기타',item:'Magnetic Mini Selfie Stick Tripod (와이피)',amt:7150,cur:'KRW'},
  {date:'2026-10-02',cat:'기타',item:'울란지 MT71 마그네틱 미니 셀카봉 (와이피)',amt:18556,cur:'KRW'},
  {date:'2026-09-26',cat:'기타',item:'BRDRC Magnetic Quick Release 마운트 (와이피)',amt:30397,cur:'KRW'},
- {date:'2026-10-02',cat:'기타',item:'울란지 MT-44M 1.49M 맥세이프 삼각대 (와이피/배송중)',amt:32600,cur:'KRW'}
+ {date:'2026-10-02',cat:'기타',item:'울란지 MT-44M 1.49M 맥세이프 삼각대 (와이피/배송중)',amt:32600,cur:'KRW'},
+ {date:'2026-10-11',cat:'관광',item:'Sun World 판시판 레전드 티켓 2인 (모노레일+케이블카+정상레일 왕복)',amt:137778,cur:'KRW'}
 ];
 function load(){try{const raw=localStorage.getItem(KEY);if(raw===null){localStorage.setItem(KEY,JSON.stringify(SEED));return SEED.slice()}return JSON.parse(raw)||[]}catch(e){return[]}}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
