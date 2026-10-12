@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>블로그 발행 도우미 — Bits with Nampy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: '맑은 고딕', 'Malgun Gothic', sans-serif; background: #f5f5f5; color: #333; }
+  header { background: #2c3e50; color: white; padding: 16px 24px; }
+  header h1 { font-size: 20px; }
+  header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .container { display: flex; height: calc(100vh - 73px); }
+  .panel { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow: hidden; }
+  .panel-left { border-right: 1px solid #ddd; background: white; }
+  .panel-right { background: #fafafa; }
+  .panel h2 { font-size: 15px; margin-bottom: 8px; color: #2c3e50; }
+  textarea#input { flex: 1; font-family: 'D2Coding', monospace; font-size: 13px; line-height: 1.6; padding: 12px; border: 1px solid #ddd; border-radius: 6px; resize: none; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .tab { padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 14px; border-bottom: none; }
+  .tab.active { background: #2c3e50; color: white; border-color: #2c3e50; }
+  .output-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .output-content { flex: 1; overflow: auto; border: 1px solid #ddd; border-radius: 0 6px 6px 6px; background: white; padding: 16px; }
+  #tistory-code, #naver-text { font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  #preview { font-family: '맑은 고딕', sans-serif; }
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  button.copy-btn { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  button.copy-btn:hover { background: #219a52; }
+  .help { margin-top: 12px; padding: 12px; background: #eef; border-radius: 6px; font-size: 12px; line-height: 1.8; }
+  .help code { background: #dde; padding: 2px 6px; border-radius: 3px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📝 블로그 발행 도우미</h1>
+  <p>Bits with Nampy — 티스토리 HTML + 네이버 plain text 자동 생성</p>
+</header>
+<div class="container">
+  <div class="panel panel-left">
+    <h2>✏️ 초안 입력 (마크다운)</h2>
+    <textarea id="input" placeholder="# 제목
+
+본문 단락을 입력하세요.
+
+## 소제목
+
+![이미지 설명](https://이미지URL)
+
+[링크 텍스트](https://URL)
+
+---
+"></textarea>
+    <div class="help">
+      <b>문법:</b><br>
+      <code># 제목</code> → 14pt 굵은 소제목<br>
+      <code>## 참고자료</code> → 13pt 굵은 제목<br>
+      <code>![설명](URL)</code> → 가운데 정렬 이미지<br>
+      <code>[텍스트](URL)</code> → 링크<br>
+      <code>---</code> → 섹션 구분 (24px 여백)<br>
+      빈 줄 → 단락 구분 (10px 여백)
+    </div>
+  </div>
+  <div class="panel panel-right">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('tistory')">티스토리 HTML</div>
+      <div class="tab" onclick="showTab('naver')">네이버용 텍스트</div>
+      <div class="tab" onclick="showTab('preview')">미리보기</div>
+    </div>
+    <div class="output-area">
+      <div class="output-content" id="tistory-panel">
+        <div id="tistory-code"></div>
+      </div>
+      <div class="output-content hidden" id="naver-panel">
+        <div id="naver-text"></div>
+      </div>
+      <div class="output-content hidden" id="preview-panel">
+        <div id="preview"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="copy-btn" onclick="copyOutput()">📋 복사하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const input = document.getElementById('input');
+let currentTab = 'tistory';
+
+function showTab(name) {
+  currentTab = name;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tistory-panel').classList.toggle('hidden', name !== 'tistory');
+  document.getElementById('naver-panel').classList.toggle('hidden', name !== 'naver');
+  document.getElementById('preview-panel').classList.toggle('hidden', name !== 'preview');
+  render();
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function parse(md) {
+  const lines = md.split('\n');
+  const blocks = [];
+  let para = [];
+  let inPara = false;
+
+  function flushPara() {
+    if (para.length > 0) {
+      blocks.push({type: 'p', text: para.join(' ')});
+      para = [];
+    }
+  }
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { flushPara(); continue; }
+    if (line === '---') { flushPara(); blocks.push({type: 'hr'}); continue; }
+    if (line.startsWith('## ')) { flushPara(); blocks.push({type: 'h2', text: line.slice(3)}); continue; }
+    if (line.startsWith('# ')) { flushPara(); blocks.push({type: 'h1', text: line.slice(2)}); continue; }
+    const imgM = line.match(/^!\[(.*?)\]\((.*?)\)$/);
+    if (imgM) { flushPara(); blocks.push({type: 'img', alt: imgM[1], src: imgM[2]}); continue; }
+    para.push(line);
+  }
+  flushPara();
+  return blocks;
+}
+
+function inlineFmt(text) {
+  // 링크 [text](url)
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  // 굵게 **text**
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  return text;
+}
+
+function inlineFmtNaver(text) {
+  // 네이버용: 링크를 [텍스트](URL) 그대로 유지
+  return text;
+}
+
+const P_STYLE = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;line-height:1.7;";
+const H1_STYLE = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:14pt;font-weight:bold;line-height:1.55;";
+const H2_STYLE = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:13pt;font-weight:bold;line-height:1.55;";
+const CAP_STYLE = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:10pt;line-height:1.7;text-align:center;";
+
+function spacer(px) {
+  return `<div style="height:${px}px;line-height:${px}px;">&nbsp;</div>`;
+}
+
+function genTistory(blocks) {
+  let html = '<div>\n';
+  blocks.forEach((b, i) => {
+    if (b.type === 'p') {
+      html += `<p style="${P_STYLE}">${inlineFmt(esc(b.text))}</p>\n`;
+      html += spacer(10) + '\n';
+    } else if (b.type === 'h1') {
+      if (i > 0) html += spacer(24) + '\n';
+      html += `<div style="${H1_STYLE}">${inlineFmt(esc(b.text))}</div>\n`;
+      html += spacer(10) + '\n';
+    } else if (b.type === 'h2') {
+      if (i > 0) html += spacer(26) + '\n';
+      html += `<div style="${H2_STYLE}">${inlineFmt(esc(b.text))}</div>\n`;
+      html += spacer(10) + '\n';
+    } else if (b.type === 'img') {
+      html += spacer(22) + '\n';
+      html += `<div style="text-align:center;">\n`;
+      html += `<img src="${esc(b.src)}" alt="${esc(b.alt)}" style="display:block;max-width:100%;height:auto;margin:0 auto;">\n`;
+      html += `</div>\n`;
+      html += spacer(10) + '\n';
+      html += `<p style="${CAP_STYLE}">▲ ${esc(b.alt)}</p>\n`;
+      html += spacer(24) + '\n';
+    } else if (b.type === 'hr') {
+      html += spacer(24) + '\n';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function genNaver(blocks) {
+  let txt = '';
+  blocks.forEach(b => {
+    if (b.type === 'p') {
+      txt += inlineFmtNaver(b.text) + '\n\n';
+    } else if (b.type === 'h1') {
+      txt += '\n■ ' + b.text + '\n\n';
+    } else if (b.type === 'h2') {
+      txt += '\n■ ' + b.text + '\n\n';
+    } else if (b.type === 'img') {
+      txt += `\n[이미지 삽입: ${b.alt}]\n${b.src}\n\n`;
+    } else if (b.type === 'hr') {
+      txt += '\n---\n\n';
+    }
+  });
+  return txt.trim();
+}
+
+function render() {
+  const blocks = parse(input.value);
+  const tistoryHtml = genTistory(blocks);
+  const naverTxt = genNaver(blocks);
+  document.getElementById('tistory-code').textContent = tistoryHtml;
+  document.getElementById('naver-text').textContent = naverTxt;
+  document.getElementById('preview').innerHTML = tistoryHtml;
+}
+
+function copyOutput() {
+  let text = '';
+  if (currentTab === 'tistory') text = document.getElementById('tistory-code').textContent;
+  else if (currentTab === 'naver') text = document.getElementById('naver-text').textContent;
+  else { alert('미리보기는 복사할 수 없습니다.'); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    alert('복사됐습니다!');
+  });
+}
+
+input.addEventListener('input', render);
+// 샘플 로드
+input.value = `# 제품 사진의 주인공은 제품이 아니었다
+
+집에서 새 삼각대의 리뷰 사진을 찍고 있었습니다. 제품을 혼자 세워놓고 찍으니 생김새는 잘 보였습니다.
+
+## 컵 손잡이를 돌렸을 뿐인데
+
+삼각대 이야기를 잠시 내려놓고, 머그컵 하나를 떠올려보겠습니다.
+
+![울란지 MT71 제품 단독 사진](https://rivaljin.github.io/nampy-blog-assets/2026/10/product-photo-hand/01.webp)
+
+---
+`;
+render();
+</script>
+</body>
+</html>
