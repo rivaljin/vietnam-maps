@@ -394,12 +394,14 @@ function toggleBodyEdit(){
     postData[key]=blocksToMd(collectBlocks());
     editingBody=false;
     editPlatform=null;
+    document.getElementById('body-edit-wrap').classList.add('hidden');
   } else {
     editingBody=true;
     editPlatform=platform;
+    // 먼저 표시한 뒤 렌더링 (높이 계산을 위해)
+    document.getElementById('body-edit-wrap').classList.remove('hidden');
     renderBlockEditor(postData[key]);
   }
-  document.getElementById('body-edit-wrap').classList.toggle('hidden',!editingBody);
   document.getElementById('btn-body-restore').classList.toggle('hidden',!editingBody);
   document.getElementById('btn-edit-body').textContent=editingBody?'✅ 완료':'✏️ 문구 수정';
   if(!editingBody){saveEdits();render();}
