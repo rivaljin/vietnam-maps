@@ -32,7 +32,7 @@
   .btn-gray:hover { background: #7f8c8d; }
   .preview-box { border: 1px solid #eee; border-radius: 6px; padding: 16px; max-height: 500px; overflow: auto; background: #fff; }
   .tags-display { font-size: 14px; color: #555; background: #f8f8f8; padding: 10px; border-radius: 4px; margin-bottom: 8px; }
-  .img-guide-item { padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .img-guide-item { padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .img-guide-item .info { font-size: 13px; }
   .img-guide-item .pos { color: #e67e22; font-weight: bold; font-size: 12px; }
   .hidden { display: none !important; }
@@ -312,9 +312,10 @@ function renderImgGuide(positions){
   if(!positions.length){el.innerHTML='<p style="color:#999;font-size:13px;">이미지가 없습니다.</p>';return;}
   el.innerHTML = positions.map((p,i)=>
     `<div class="img-guide-item">
-      <div class="info"><span class="pos">${i+1}.</span> ${esc(p.alt)}<br>
+      <img src="${esc(p.src)}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">
+      <div class="info" style="flex:1;"><span class="pos">${i+1}.</span> ${esc(p.alt)}<br>
       <span style="color:#888;font-size:11px;">→ ${p.afterPara}번째 문단 뒤에 삽입</span></div>
-      <button class="btn btn-orange" style="margin:0;" onclick="downloadImgByIndex(${i},'naver')">⬇️</button>
+      <button class="btn btn-orange" style="margin:0;flex-shrink:0;" onclick="downloadImgByIndex(${i},'naver')">⬇️</button>
     </div>`).join('');
 }
 function renderImgGuideTistory(imgs){
@@ -322,8 +323,9 @@ function renderImgGuideTistory(imgs){
   if(!imgs.length){el.innerHTML='<p style="color:#999;font-size:13px;">이미지가 없습니다.</p>';return;}
   el.innerHTML = imgs.map((im,i)=>
     `<div class="img-guide-item">
-      <div class="info"><span class="pos">${i+1}.</span> ${esc(im.alt)}</div>
-      <button class="btn btn-orange" style="margin:0;" onclick="downloadImgByIndex(${i},'tistory')">⬇️</button>
+      <img src="${esc(im.src)}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">
+      <div class="info" style="flex:1;"><span class="pos">${i+1}.</span> ${esc(im.alt)}</div>
+      <button class="btn btn-orange" style="margin:0;flex-shrink:0;" onclick="downloadImgByIndex(${i},'tistory')">⬇️</button>
     </div>`).join('');
 }
 
