@@ -89,8 +89,8 @@
   <div class="card">
     <h3>📄 본문</h3>
     <div id="body-edit-wrap" class="hidden">
-      <textarea id="body-edit" class="edit-area" style="min-height:200px;font-family:monospace;font-size:13px;"></textarea>
-      <p style="font-size:12px;color:#888;margin:6px 0;">문구만 고치세요. <code>#</code> <code>*</code> <code>></code> <code>![ ]</code> <code>[ ]</code> 같은 기호는 그대로 두면 서식이 유지됩니다.</p>
+      <div id="block-editor" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <p style="font-size:12px;color:#888;margin:6px 0;">각 문단의 <b>문구만</b> 고치세요. 제목·굵게·링크·이미지 서식은 자동으로 유지됩니다.</p>
     </div>
     <div id="tistory-actions">
       <button class="btn btn-green" onclick="copyTistoryHTML()">📋 HTML 본문 복사</button>
@@ -390,19 +390,95 @@ function restoreTitle(){
 function toggleBodyEdit(){
   const key=platform==='tistory'?'bodyTistory':'bodyNaver';
   if(editingBody){
-    // 완료: 마크다운 그대로 저장 (서식 손실 없음)
-    postData[key]=document.getElementById('body-edit').value;
+    // 완료: 블록 에디터에서 마크다운 재구성
+    postData[key]=blocksToMd(collectBlocks());
     editingBody=false;
     editPlatform=null;
   } else {
     editingBody=true;
     editPlatform=platform;
-    document.getElementById('body-edit').value=postData[key];
+    renderBlockEditor(postData[key]);
   }
   document.getElementById('body-edit-wrap').classList.toggle('hidden',!editingBody);
   document.getElementById('btn-body-restore').classList.toggle('hidden',!editingBody);
   document.getElementById('btn-edit-body').textContent=editingBody?'✅ 완료':'✏️ 문구 수정';
   if(!editingBody){saveEdits();render();}
+}
+// 블록 에디터 렌더링: 문구만 편집, 서식은 유지
+let editBlocks=[];
+function renderBlockEditor(md){
+  editBlocks=parse(md);
+  const wrap=document.getElementById('block-editor');
+  wrap.innerHTML='';
+  editBlocks.forEach((b,i)=>{
+    if(b.type==='img'){
+      const d=document.createElement('div');
+      d.style.cssText='padding:8px;background:#f0f0f0;border-radius:6px;font-size:12px;color:#888;';
+      d.innerHTML=`🖼️ 이미지: ${esc(b.alt)} <span style="color:#aaa;">(수정 불가)</span>`;
+      wrap.appendChild(d);
+    } else if(b.type==='hr'){
+      const d=document.createElement('div');
+      d.style.cssText='padding:4px;color:#aaa;font-size:12px;';
+      d.textContent='─── 구분선 ───';
+      wrap.appendChild(d);
+    } else if(b.type==='warn'){
+      return; // 경고 블록은 편집에서 제외
+    } else {
+      const label={p:'문단',h1:'소제목',h2:'참고제목',h3:'작은제목',quote:'인용',ul:'목록'}[b.type]||'텍스트';
+      const d=document.createElement('div');
+      d.style.cssText='border:1px solid #ddd;border-radius:6px;padding:6px;';
+      const lab=document.createElement('div');
+      lab.style.cssText='font-size:11px;color:#999;margin-bottom:4px;';
+      lab.textContent=label;
+      d.appendChild(lab);
+      if(b.type==='ul'){
+        b.items.forEach((it,ji)=>{
+          const ta=document.createElement('textarea');
+          ta.rows=1;ta.dataset.block=i;ta.dataset.item=ji;
+          ta.style.cssText='width:100%;padding:6px;border:1px solid #eee;border-radius:4px;font-size:13px;font-family:inherit;margin-bottom:4px;';
+          ta.value=it;
+          ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
+          d.appendChild(ta);
+        });
+      } else {
+        const ta=document.createElement('textarea');
+        ta.rows=2;ta.dataset.block=i;
+        ta.style.cssText='width:100%;padding:6px;border:1px solid #eee;border-radius:4px;font-size:13px;font-family:inherit;';
+        ta.value=b.text;
+        ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
+        d.appendChild(ta);
+      }
+      wrap.appendChild(d);
+    }
+  });
+  // 높이 자동 조절
+  wrap.querySelectorAll('textarea').forEach(ta=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
+}
+function collectBlocks(){
+  const wrap=document.getElementById('block-editor');
+  const tas=wrap.querySelectorAll('textarea');
+  // editBlocks 복사 후 텍스트만 교체
+  const out=JSON.parse(JSON.stringify(editBlocks));
+  tas.forEach(ta=>{
+    const bi=+ta.dataset.block, ji=ta.dataset.item;
+    if(ji!==undefined&&ji!==''){out[bi].items[+ji]=ta.value;}
+    else if(out[bi]){out[bi].text=ta.value;}
+  });
+  return out;
+}
+function blocksToMd(blocks){
+  let md='';
+  blocks.forEach(b=>{
+    if(b.type==='p')md+=b.text+'\n\n';
+    else if(b.type==='h1')md+='# '+b.text+'\n\n';
+    else if(b.type==='h2')md+='## '+b.text+'\n\n';
+    else if(b.type==='h3')md+='### '+b.text+'\n\n';
+    else if(b.type==='quote')md+='> '+b.text+'\n\n';
+    else if(b.type==='ul')b.items.forEach(it=>md+='- '+it+'\n'),md+='\n';
+    else if(b.type==='img')md+=`![${b.alt}](${b.src})\n\n`;
+    else if(b.type==='hr')md+='---\n\n';
+  });
+  return md.trim();
 }
 function restoreBody(){
   const key=platform==='tistory'?'bodyTistory':'bodyNaver';
@@ -414,19 +490,24 @@ function restoreBody(){
   document.getElementById('btn-edit-body').textContent='✏️ 문구 수정';
   saveEdits();render();
 }
+// 글별 고유 키: 전체 데이터 해시 (충돌 방지)
+function postKey(){
+  const h = location.hash.slice(1) || 'default';
+  let hash = 5381;
+  for(let i=0;i<h.length;i++){ hash = ((hash<<5)+hash+h.charCodeAt(i))|0; }
+  return 'blog_edit_'+(hash>>>0).toString(36)+'_'+h.length;
+}
 // 수정 내용 저장 (글별)
 function saveEdits(){
   try{
-    const postId=location.hash.slice(1,32)||'default';
-    localStorage.setItem('blog_edit_'+postId, JSON.stringify({
+    localStorage.setItem(postKey(), JSON.stringify({
       title:postData.title, bodyTistory:postData.bodyTistory, bodyNaver:postData.bodyNaver
     }));
   }catch(e){}
 }
 function loadEdits(){
   try{
-    const postId=location.hash.slice(1,32)||'default';
-    const s=JSON.parse(localStorage.getItem('blog_edit_'+postId));
+    const s=JSON.parse(localStorage.getItem(postKey()));
     if(s){postData.title=s.title??postData.title;postData.bodyTistory=s.bodyTistory??postData.bodyTistory;postData.bodyNaver=s.bodyNaver??postData.bodyNaver;}
   }catch(e){}
 }
