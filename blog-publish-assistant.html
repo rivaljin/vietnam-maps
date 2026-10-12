@@ -213,8 +213,14 @@ function copyOutput() {
   if (currentTab === 'tistory') text = document.getElementById('tistory-code').textContent;
   else if (currentTab === 'naver') text = document.getElementById('naver-text').textContent;
   else { alert('미리보기는 복사할 수 없습니다.'); return; }
-  navigator.clipboard.writeText(text).then(() => {
-    alert('복사됐습니다!');
+  // 네이버 흰색 글씨 문제 방지: 순수 텍스트로만 클립보드에 쓰기
+  const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+  const data = [new ClipboardItem({'text/plain': blob})];
+  navigator.clipboard.write(data).then(() => {
+    alert('복사됐습니다!' + (currentTab === 'naver' ? '\n(서식 없이 순수 텍스트로 복사됨)' : ''));
+  }).catch(() => {
+    // fallback
+    navigator.clipboard.writeText(text).then(() => alert('복사됐습니다!'));
   });
 }
 
