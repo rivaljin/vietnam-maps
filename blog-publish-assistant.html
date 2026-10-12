@@ -89,8 +89,8 @@
   <div class="card">
     <h3>📄 본문</h3>
     <div id="body-edit-wrap" class="hidden">
-      <textarea id="body-edit" class="edit-area" style="min-height:200px;"></textarea>
-      <p style="font-size:12px;color:#888;margin:6px 0;">일반 텍스트로 수정하세요. 이미지와 서식은 유지됩니다.</p>
+      <textarea id="body-edit" class="edit-area" style="min-height:200px;font-family:monospace;font-size:13px;"></textarea>
+      <p style="font-size:12px;color:#888;margin:6px 0;">문구만 고치세요. <code>#</code> <code>*</code> <code>></code> <code>![ ]</code> <code>[ ]</code> 같은 기호는 그대로 두면 서식이 유지됩니다.</p>
     </div>
     <div id="tistory-actions">
       <button class="btn btn-green" onclick="copyTistoryHTML()">📋 HTML 본문 복사</button>
@@ -124,6 +124,7 @@
       <h3>🔧 제작자 영역 — 마크다운 원稿</h3>
       <input type="text" id="creator-title" placeholder="제목">
       <input type="text" id="creator-tags" placeholder="태그 (쉼표 구분)">
+      <input type="text" id="creator-featured" placeholder="대표이미지 URL (비워두면 본문 첫 이미지 사용)" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px;font-size:13px;">
       <textarea id="md-input" placeholder="# 소제목&#10;&#10;본문...&#10;&#10;![설명](https://이미지URL)"></textarea>
       <div style="margin-top:8px;">
         <button class="btn btn-blue" onclick="applyCreator()">✅ 적용</button>
@@ -242,20 +243,19 @@ function genTistory(blocks){
   return html+'</div>';
 }
 
-// 네이버 본문: 이미지 완전 제거, 위치는 별도 안내
+// 네이버 본문: 이미지 완전 제거, 위치는 별도 안내 (실제 문구 포함)
 function genNaverBody(blocks){
   let txt='', imgPositions=[];
-  let paraCount=0;
+  let lastText='';
   blocks.forEach(b=>{
-    if(b.type==='p'){paraCount++;txt+=inlineNaver(b.text)+'\n\n';}
-    else if(b.type==='h1'){txt+='\n■ '+inlineNaver(b.text)+'\n\n';}
-    else if(b.type==='h2'){txt+='\n■ '+inlineNaver(b.text)+'\n\n';}
-    else if(b.type==='h3'){txt+='\n▸ '+inlineNaver(b.text)+'\n\n';}
-    else if(b.type==='ul'){b.items.forEach(it=>txt+='• '+inlineNaver(it)+'\n');txt+='\n';}
-    else if(b.type==='quote'){txt+='❝ '+inlineNaver(b.text)+' ❞\n\n';}
+    if(b.type==='p'){lastText=b.text.slice(0,30);txt+=inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='h1'){lastText=b.text.slice(0,30);txt+='\n■ '+inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='h2'){lastText=b.text.slice(0,30);txt+='\n■ '+inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='h3'){lastText=b.text.slice(0,30);txt+='\n▸ '+inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='ul'){b.items.forEach(it=>txt+='• '+inlineNaver(it)+'\n');txt+='\n';lastText=b.items[b.items.length-1]?.slice(0,30)||'';}
+    else if(b.type==='quote'){lastText=b.text.slice(0,30);txt+='❝ '+inlineNaver(b.text)+' ❞\n\n';}
     else if(b.type==='img'){
-      // 본문에서는 제거, 위치만 기록
-      imgPositions.push({afterPara: paraCount, alt: b.alt, src: b.src, index: imgPositions.length});
+      imgPositions.push({afterText: lastText||'(문서 시작)', alt: b.alt, src: b.src, index: imgPositions.length});
     }
     else if(b.type==='hr'){txt+='\n───\n\n';}
   });
@@ -314,7 +314,7 @@ function renderImgGuide(positions){
     `<div class="img-guide-item">
       <img src="${esc(p.src)}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">
       <div class="info" style="flex:1;"><span class="pos">${i+1}.</span> ${esc(p.alt)}<br>
-      <span style="color:#888;font-size:11px;">→ ${p.afterPara}번째 문단 뒤에 삽입</span></div>
+      <span style="color:#888;font-size:11px;">→ "${esc(p.afterText)}..." 뒤에 삽입</span></div>
       <button class="btn btn-orange" style="margin:0;flex-shrink:0;" onclick="downloadImgByIndex(${i},'naver')">⬇️</button>
     </div>`).join('');
 }
@@ -362,63 +362,73 @@ async function copyNaverBody(){
   alert(ok?'📋 본문 복사됨!':'⚠️ 복사 실패. 수동으로 복사해주세요.');
 }
 
-// === 문구 수정 ===
+// === 문구 수정 (마크다운 직접 편집 - 서식 손실 없음) ===
 function toggleTitleEdit(){
-  editingTitle=!editingTitle;
+  if(editingTitle){
+    // 완료: 저장
+    postData.title=document.getElementById('title-edit').value;
+    editingTitle=false;
+  } else {
+    editingTitle=true;
+    document.getElementById('title-edit').value=postData.title;
+  }
   document.getElementById('title-display').classList.toggle('hidden',editingTitle);
   document.getElementById('title-edit-wrap').classList.toggle('hidden',!editingTitle);
   document.getElementById('btn-title-restore').classList.toggle('hidden',!editingTitle);
   document.getElementById('btn-edit-title').textContent=editingTitle?'✅ 완료':'✏️ 문구 수정';
-  if(editingTitle){document.getElementById('title-edit').value=postData.title;}
-  else{postData.title=document.getElementById('title-edit').value;render();}
+  if(!editingTitle){saveEdits();render();}
 }
 function restoreTitle(){
   postData.title=originalData.title;
-  toggleTitleEdit();
+  editingTitle=false;
+  document.getElementById('title-display').classList.toggle('hidden',false);
+  document.getElementById('title-edit-wrap').classList.toggle('hidden',true);
+  document.getElementById('btn-title-restore').classList.toggle('hidden',true);
+  document.getElementById('btn-edit-title').textContent='✏️ 문구 수정';
+  saveEdits();render();
 }
 function toggleBodyEdit(){
-  editingBody=!editingBody;
+  const key=platform==='tistory'?'bodyTistory':'bodyNaver';
+  if(editingBody){
+    // 완료: 마크다운 그대로 저장 (서식 손실 없음)
+    postData[key]=document.getElementById('body-edit').value;
+    editingBody=false;
+    editPlatform=null;
+  } else {
+    editingBody=true;
+    editPlatform=platform;
+    document.getElementById('body-edit').value=postData[key];
+  }
   document.getElementById('body-edit-wrap').classList.toggle('hidden',!editingBody);
   document.getElementById('btn-body-restore').classList.toggle('hidden',!editingBody);
   document.getElementById('btn-edit-body').textContent=editingBody?'✅ 완료':'✏️ 문구 수정';
-  const key=platform==='tistory'?'bodyTistory':'bodyNaver';
-  if(editingBody){
-    // 마크다운을 일반 텍스트로 변환해서 보여줌
-    document.getElementById('body-edit').value=mdToPlain(postData[key]);
-  } else {
-    postData[key]=plainToMd(document.getElementById('body-edit').value, postData[key]);
-    render();
-  }
+  if(!editingBody){saveEdits();render();}
 }
 function restoreBody(){
   const key=platform==='tistory'?'bodyTistory':'bodyNaver';
   postData[key]=originalData[key];
-  toggleBodyEdit();
+  editingBody=false;
+  editPlatform=null;
+  document.getElementById('body-edit-wrap').classList.toggle('hidden',true);
+  document.getElementById('btn-body-restore').classList.toggle('hidden',true);
+  document.getElementById('btn-edit-body').textContent='✏️ 문구 수정';
+  saveEdits();render();
 }
-// 마크다운 → 일반 텍스트 (수정을 위해)
-function mdToPlain(md){
-  return md
-    .replace(/^#{1,3} /gm,'')
-    .replace(/^[-*] /gm,'• ')
-    .replace(/^> /gm,'')
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g,'[이미지: $1]')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
-    .replace(/\*\*/g,'')
-    .replace(/^---$/gm,'───');
+// 수정 내용 저장 (글별)
+function saveEdits(){
+  try{
+    const postId=location.hash.slice(1,32)||'default';
+    localStorage.setItem('blog_edit_'+postId, JSON.stringify({
+      title:postData.title, bodyTistory:postData.bodyTistory, bodyNaver:postData.bodyNaver
+    }));
+  }catch(e){}
 }
-// 일반 텍스트 → 마크다운 (이미지/서식 유지하며 텍스트만 교체)
-function plainToMd(plain, originalMd){
-  // 간단한 방식: 문단 구조는 유지하고 텍스트만 교체
-  // 실제로는 원본 마크다운의 구조를 보존하면서 텍스트 노드만 교체해야 하지만,
-  // v3에서는 전체를 일반 텍스트 마크다운으로 변환
-  return plain
-    .replace(/^• /gm,'- ')
-    .replace(/^───$/gm,'---')
-    .replace(/\[이미지: ([^\]]+)\]/g,(m,alt)=>{
-      // 원본에서 해당 alt의 이미지 URL 찾기
-      const match=originalMd.match(new RegExp(`!\\[${alt.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\]\\(([^)]+)\\)`));
-      return match?`![${alt}](${match[1]})`:m;
-    });
+function loadEdits(){
+  try{
+    const postId=location.hash.slice(1,32)||'default';
+    const s=JSON.parse(localStorage.getItem('blog_edit_'+postId));
+    if(s){postData.title=s.title??postData.title;postData.bodyTistory=s.bodyTistory??postData.bodyTistory;postData.bodyNaver=s.bodyNaver??postData.bodyNaver;}
+  }catch(e){}
 }
 
 // === 이미지 다운로드 ===
@@ -446,10 +456,16 @@ async function downloadImgByIndex(i,which){
   }catch(e){alert('다운로드 실패: '+e.message);}
 }
 async function downloadFeatured(){
-  const imgs=getImages(platform);
-  if(!imgs.length){alert('이미지가 없습니다.');return;}
+  // 대표이미지가 별도 지정되어 있으면 우선 사용
+  let src = postData.featuredImage;
+  let label = '대표이미지';
+  if(!src){
+    const imgs=getImages(platform);
+    if(!imgs.length){alert('이미지가 없습니다.');return;}
+    src=imgs[0].src; label=imgs[0].alt;
+  }
   try{
-    const blob=await fetchImg(imgs[0].src);
+    const blob=await fetchImg(src);
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
     a.download=`featured.${ext(blob)}`;
@@ -485,13 +501,34 @@ function setMode(m){
   document.getElementById('btn-creator').classList.toggle('active',m==='creator');
   document.getElementById('creator-area').classList.toggle('hidden',m!=='creator');
 }
-function setPlatform(p){platform=p;render();}
+let editPlatform=null;
+function setPlatform(p){
+  if(editingBody && editPlatform!==p){
+    if(!confirm('수정 중인 내용이 있습니다. 저장하지 않고 플랫폼을 바꾸시겠습니까?')){
+      // 탭 UI 되돌리기
+      document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('active',t.dataset.p===platform));
+      return;
+    }
+    // 취소하고 전환
+    editingBody=false;editPlatform=null;
+    document.getElementById('body-edit-wrap').classList.toggle('hidden',true);
+    document.getElementById('btn-body-restore').classList.toggle('hidden',true);
+    document.getElementById('btn-edit-body').textContent='✏️ 문구 수정';
+  }
+  if(editingTitle){
+    alert('제목 수정 중입니다. 먼저 완료 또는 원본으로 되돌리기를 해주세요.');
+    document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('active',t.dataset.p===platform));
+    return;
+  }
+  platform=p;render();
+}
 
 // === 제작 모드 ===
 function applyCreator(){
   postData={
     title:document.getElementById('creator-title').value,
     tags:document.getElementById('creator-tags').value,
+    featuredImage:document.getElementById('creator-featured').value.trim(),
     bodyTistory:document.getElementById('md-input').value,
     bodyNaver:document.getElementById('md-input').value,
     images:[]
@@ -516,7 +553,7 @@ async function copyShareLink(){
 
 // === 초기화 ===
 if(loadFromHash()){
-  // 해시에서 로드됨
+  loadEdits(); // 저장된 수정 내용 복원
 } else {
   // 데모 데이터
   postData={
