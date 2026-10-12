@@ -81,6 +81,14 @@
     <div class="btn-row">
       <button class="copy-btn" onclick="copyOutput()">📋 복사하기</button>
     </div>
+    <div style="margin-top:12px; padding:12px; background:#fff8e1; border-radius:6px; border:1px solid #ffe082;">
+      <b style="font-size:13px;">🖼️ 대표이미지 다운로드</b>
+      <p style="font-size:12px; margin:6px 0; color:#666;">네이버/티스토리 대표이미지는 직접 업로드해야 합니다. URL을 넣고 다운로드하세요.</p>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="feat-url" placeholder="https:// 이미지 URL" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:12px;">
+        <button class="copy-btn" style="padding:8px 16px; font-size:13px;" onclick="downloadFeat()">⬇️ 다운로드</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -225,6 +233,23 @@ function copyOutput() {
 }
 
 input.addEventListener('input', render);
+
+async function downloadFeat() {
+  const url = document.getElementById('feat-url').value.trim();
+  if (!url) { alert('이미지 URL을 입력하세요.'); return; }
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'featured.' + ext;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    alert('다운로드 실패. URL을 확인하세요.');
+  }
+}
 // 샘플 로드
 input.value = `# 제품 사진의 주인공은 제품이 아니었다
 
