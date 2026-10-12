@@ -3,488 +3,528 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>블로그 발행 도우미 v2 — Bits with Nampy</title>
+<title>블로그 발행 도우미 v3 — Bits with Nampy</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: '맑은 고딕', 'Malgun Gothic', sans-serif; background: #f5f5f5; color: #333; }
   header { background: #2c3e50; color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
-  header h1 { font-size: 19px; }
-  header .save-info { font-size: 12px; opacity: 0.7; }
-  .title-bar { background: white; padding: 12px 24px; border-bottom: 1px solid #ddd; display: flex; gap: 8px; align-items: center; }
-  .title-bar label { font-size: 14px; font-weight: bold; white-space: nowrap; }
-  .title-bar input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-  .title-bar button { padding: 8px 14px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; }
-  .container { display: flex; height: calc(100vh - 130px); }
-  .panel { flex: 1; display: flex; flex-direction: column; padding: 14px; overflow: hidden; min-width: 0; }
-  .panel-left { border-right: 1px solid #ddd; background: white; }
-  .panel-right { background: #fafafa; }
-  .panel h2 { font-size: 14px; margin-bottom: 8px; color: #2c3e50; }
-  textarea#input { flex: 1; font-family: monospace; font-size: 13px; line-height: 1.6; padding: 12px; border: 1px solid #ddd; border-radius: 6px; resize: none; }
-  .toolbar { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-  .toolbar button { padding: 5px 10px; border: 1px solid #ddd; background: #f8f8f8; border-radius: 4px; cursor: pointer; font-size: 12px; }
-  .toolbar button:hover { background: #e8e8e8; }
-  .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
-  .tab { padding: 8px 14px; border: 1px solid #ddd; background: white; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 13px; border-bottom: none; }
-  .tab.active { background: #2c3e50; color: white; border-color: #2c3e50; }
-  .output-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
-  .output-content { flex: 1; overflow: auto; border: 1px solid #ddd; border-radius: 0 6px 6px 6px; background: white; padding: 14px; }
-  #tistory-code, #naver-text, #naver-img-guide { font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
-  #preview { font-family: '맑은 고딕', sans-serif; }
-  .btn-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-  button.copy-btn { padding: 9px 16px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  button.copy-btn:hover { background: #219a52; }
-  button.copy-btn.blue { background: #2980b9; }
-  button.copy-btn.blue:hover { background: #2471a3; }
-  button.copy-btn.orange { background: #e67e22; }
-  button.copy-btn.orange:hover { background: #d35400; }
-  .help { margin-top: 10px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
-  .help-header { padding: 8px 12px; background: #eef; cursor: pointer; font-size: 13px; font-weight: bold; }
-  .help-body { padding: 10px 12px; font-size: 12px; line-height: 1.9; display: none; }
-  .help.open .help-body { display: block; }
-  .help code { background: #dde; padding: 2px 6px; border-radius: 3px; }
-  .hidden { display: none; }
-  .img-section { margin-top: 10px; padding: 10px 12px; background: #fff8e1; border-radius: 6px; border: 1px solid #ffe082; }
-  .img-section b { font-size: 13px; }
-  .img-section p { font-size: 12px; margin: 6px 0; color: #666; }
-  .img-list { font-size: 12px; margin: 6px 0; max-height: 120px; overflow: auto; }
-  .img-list div { padding: 4px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; }
-  .img-list button { padding: 3px 8px; font-size: 11px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
-  @media (max-width: 768px) {
-    .container { flex-direction: column; height: auto; }
-    .panel { min-height: 400px; }
-    .panel-left { border-right: none; border-bottom: 1px solid #ddd; }
-  }
+  header h1 { font-size: 18px; }
+  header .mode-toggle { font-size: 13px; }
+  header .mode-toggle button { padding: 6px 12px; background: #34495e; color: white; border: 1px solid #4a6278; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  header .mode-toggle button.active { background: #27ae60; border-color: #27ae60; }
+  .platform-tabs { display: flex; background: white; border-bottom: 2px solid #ddd; }
+  .platform-tabs .ptab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-size: 15px; font-weight: bold; border-bottom: 3px solid transparent; }
+  .platform-tabs .ptab.active { border-bottom-color: #27ae60; color: #27ae60; }
+  .platform-tabs .ptab.tistory.active { border-bottom-color: #e74c3c; color: #e74c3c; }
+  .main { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .card { background: white; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .card h3 { font-size: 14px; color: #666; margin-bottom: 10px; }
+  .title-display { font-size: 18px; font-weight: bold; margin-bottom: 8px; line-height: 1.5; }
+  .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 8px; margin-bottom: 8px; }
+  .btn-green { background: #27ae60; color: white; }
+  .btn-green:hover { background: #219a52; }
+  .btn-blue { background: #2980b9; color: white; }
+  .btn-blue:hover { background: #2471a3; }
+  .btn-orange { background: #e67e22; color: white; }
+  .btn-orange:hover { background: #d35400; }
+  .btn-gray { background: #95a5a6; color: white; }
+  .btn-gray:hover { background: #7f8c8d; }
+  .preview-box { border: 1px solid #eee; border-radius: 6px; padding: 16px; max-height: 500px; overflow: auto; background: #fff; }
+  .tags-display { font-size: 14px; color: #555; background: #f8f8f8; padding: 10px; border-radius: 4px; margin-bottom: 8px; }
+  .img-guide-item { padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .img-guide-item .info { font-size: 13px; }
+  .img-guide-item .pos { color: #e67e22; font-weight: bold; font-size: 12px; }
+  .hidden { display: none !important; }
+  /* 제작자 영역 */
+  #creator-area { border-top: 3px dashed #ccc; margin-top: 20px; padding-top: 16px; }
+  #creator-area .card { background: #f9f9f9; }
+  textarea#md-input { width: 100%; height: 200px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+  input#creator-title, input#creator-tags { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
+  #share-link { width: 100%; padding: 8px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; background: #f0f0f0; }
+  .warn-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 10px; margin: 8px 0; font-size: 13px; }
+  /* 수정 모드 */
+  .edit-area { width: 100%; min-height: 80px; padding: 10px; border: 2px solid #3498db; border-radius: 6px; font-size: 14px; font-family: inherit; line-height: 1.6; }
+  @media (max-width: 768px) { .main { padding: 12px; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>📝 블로그 발행 도우미 v2</h1>
-  <span class="save-info" id="save-info">자동 저장됨</span>
+  <h1>📝 블로그 발행 도우미</h1>
+  <div class="mode-toggle">
+    <button id="btn-publisher" class="active" onclick="setMode('publisher')">발행 모드</button>
+    <button id="btn-creator" onclick="setMode('creator')">제작 모드</button>
+  </div>
 </header>
-<div class="title-bar">
-  <label>📌 글 제목:</label>
-  <input type="text" id="title-input" placeholder="발행할 글 제목을 입력하세요">
-  <button onclick="copyTitle()">제목 복사</button>
-  <button onclick="loadSample()" style="background:#95a5a6;">샘플 불러오기</button>
+
+<div class="platform-tabs">
+  <div class="ptab tistory active" data-p="tistory" onclick="setPlatform('tistory')">🟠 티스토리</div>
+  <div class="ptab" data-p="naver" onclick="setPlatform('naver')">🟢 네이버</div>
 </div>
-<div class="container">
-  <div class="panel panel-left">
-    <h2>✏️ 초안 입력</h2>
-    <div class="toolbar">
-      <button onclick="wrapSel('**','**')" title="굵게"><b>B</b></button>
-      <button onclick="insertAt('# ','')" title="소제목">H1</button>
-      <button onclick="insertAt('## ','')" title="참고자료 제목">H2</button>
-      <button onclick="insertAt('### ','')" title="소소제목">H3</button>
-      <button onclick="insertAt('- ','')" title="목록">• 목록</button>
-      <button onclick="insertAt('> ','')" title="인용">&gt; 인용</button>
-      <button onclick="insertAt('[텍스트](https://URL)','')" title="링크">🔗 링크</button>
-      <button onclick="insertAt('![설명](https://이미지URL)','')" title="이미지">🖼️ 이미지</button>
-      <button onclick="insertAt('\n---\n','')" title="구분선">― 구분선</button>
+
+<div class="main">
+  <!-- 경고 표시 -->
+  <div id="warnings"></div>
+
+  <!-- 제목 카드 -->
+  <div class="card">
+    <h3>📌 제목</h3>
+    <div class="title-display" id="title-display"></div>
+    <div id="title-edit-wrap" class="hidden">
+      <input type="text" id="title-edit" class="edit-area" style="min-height:40px;">
     </div>
-    <textarea id="input" placeholder="본문을 입력하세요..."></textarea>
-    <div class="help" id="help-box">
-      <div class="help-header" onclick="document.getElementById('help-box').classList.toggle('open')">📖 문법 도움말 (클릭하여 펼치기)</div>
-      <div class="help-body">
-        <code># 소제목</code> → 14pt 굵게<br>
-        <code>## 참고자료</code> → 13pt 굵게<br>
-        <code>### 작은제목</code> → 12pt 굵게<br>
-        <code>- 항목</code> → 글머리 목록<br>
-        <code>&gt; 인용문</code> → 인용 블록<br>
-        <code>![설명](URL)</code> → 가운데 정렬 이미지<br>
-        <code>[텍스트](URL)</code> → 링크<br>
-        <code>**굵게**</code> → 굵은 글씨<br>
-        <code>---</code> → 섹션 구분선<br>
-        빈 줄 → 단락 구분
-      </div>
+    <button class="btn btn-blue" onclick="copyTitle()">📋 제목 복사</button>
+    <button class="btn btn-gray" id="btn-edit-title" onclick="toggleTitleEdit()">✏️ 문구 수정</button>
+    <button class="btn btn-gray hidden" id="btn-title-restore" onclick="restoreTitle()">↩️ 원본으로</button>
+  </div>
+
+  <!-- 태그 카드 -->
+  <div class="card">
+    <h3>🏷️ 태그 (쉼표 구분)</h3>
+    <div class="tags-display" id="tags-display"></div>
+    <button class="btn btn-blue" onclick="copyTags()">📋 태그 복사</button>
+  </div>
+
+  <!-- 본문 카드 -->
+  <div class="card">
+    <h3>📄 본문</h3>
+    <div id="body-edit-wrap" class="hidden">
+      <textarea id="body-edit" class="edit-area" style="min-height:200px;"></textarea>
+      <p style="font-size:12px;color:#888;margin:6px 0;">일반 텍스트로 수정하세요. 이미지와 서식은 유지됩니다.</p>
+    </div>
+    <div id="tistory-actions">
+      <button class="btn btn-green" onclick="copyTistoryHTML()">📋 HTML 본문 복사</button>
+    </div>
+    <div id="naver-actions" class="hidden">
+      <button class="btn btn-green" onclick="copyNaverBody()">📋 본문 복사</button>
+    </div>
+    <button class="btn btn-gray" id="btn-edit-body" onclick="toggleBodyEdit()">✏️ 문구 수정</button>
+    <button class="btn btn-gray hidden" id="btn-body-restore" onclick="restoreBody()">↩️ 원본으로</button>
+  </div>
+
+  <!-- 미리보기 카드 -->
+  <div class="card">
+    <h3>👁️ 미리보기</h3>
+    <div class="preview-box" id="preview"></div>
+  </div>
+
+  <!-- 이미지 카드 -->
+  <div class="card" id="img-card">
+    <h3>🖼️ 이미지</h3>
+    <div id="img-guide-list"></div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-orange" onclick="downloadFeatured()">⬇️ 대표이미지 다운로드</button>
+      <button class="btn btn-orange hidden" id="btn-zip" onclick="downloadAllZip()">⬇️ 전체 이미지 ZIP</button>
     </div>
   </div>
-  <div class="panel panel-right">
-    <div class="tabs">
-      <div class="tab active" data-tab="preview" onclick="showTab('preview')">👁️ 미리보기</div>
-      <div class="tab" data-tab="tistory" onclick="showTab('tistory')">티스토리 HTML</div>
-      <div class="tab" data-tab="naver" onclick="showTab('naver')">네이버 본문</div>
-      <div class="tab" data-tab="naver-img" onclick="showTab('naver-img')">네이버 이미지 안내</div>
-    </div>
-    <div class="output-area">
-      <div class="output-content" id="preview-panel"><div id="preview"></div></div>
-      <div class="output-content hidden" id="tistory-panel"><div id="tistory-code"></div></div>
-      <div class="output-content hidden" id="naver-panel"><div id="naver-text"></div></div>
-      <div class="output-content hidden" id="naver-img-panel"><div id="naver-img-guide"></div></div>
-    </div>
-    <div class="btn-row">
-      <button class="copy-btn" id="btn-copy-tistory" onclick="copyTab('tistory')">📋 티스토리 HTML 복사</button>
-      <button class="copy-btn blue hidden" id="btn-copy-naver" onclick="copyTab('naver')">📋 네이버 본문 복사</button>
-      <button class="copy-btn orange hidden" id="btn-copy-imgguide" onclick="copyTab('naver-img')">📋 이미지 안내 복사</button>
-      <button class="copy-btn blue hidden" id="btn-preview-copy" onclick="copyTab('tistory')">📋 HTML 복사</button>
-    </div>
-    <div class="img-section">
-      <b>🖼️ 본문 이미지 일괄 다운로드</b>
-      <p>본문에서 이미지 URL을 자동 추출합니다.</p>
-      <div class="img-list" id="img-list"><div style="color:#999;">이미지가 없습니다.</div></div>
-      <div class="btn-row">
-        <button class="copy-btn orange" onclick="downloadAllImages()">⬇️ 전체 ZIP 다운로드</button>
+
+  <!-- 제작자 영역 -->
+  <div id="creator-area" class="hidden">
+    <div class="card">
+      <h3>🔧 제작자 영역 — 마크다운 원稿</h3>
+      <input type="text" id="creator-title" placeholder="제목">
+      <input type="text" id="creator-tags" placeholder="태그 (쉼표 구분)">
+      <textarea id="md-input" placeholder="# 소제목&#10;&#10;본문...&#10;&#10;![설명](https://이미지URL)"></textarea>
+      <div style="margin-top:8px;">
+        <button class="btn btn-blue" onclick="applyCreator()">✅ 적용</button>
+        <button class="btn btn-green" onclick="genShareLink()">🔗 발행 링크 생성</button>
       </div>
+      <div style="margin-top:8px;">
+        <input type="text" id="share-link" readonly placeholder="발행 링크가 여기에 생성됩니다" onclick="this.select()">
+        <button class="btn btn-blue" style="margin-top:6px;" onclick="copyShareLink()">📋 링크 복사</button>
+      </div>
+      <details style="margin-top:10px;font-size:12px;">
+        <summary style="cursor:pointer;">📖 마크다운 문법</summary>
+        <div style="padding:8px;line-height:2;">
+          <code># 소제목</code> <code>## 참고</code> <code>### 작은제목</code><br>
+          <code>- 목록</code> <code>&gt; 인용</code> <code>**굵게**</code><br>
+          <code>![설명](URL)</code> <code>[텍스트](URL)</code> <code>---</code>
+        </div>
+      </details>
     </div>
   </div>
 </div>
 
 <script>
-const input = document.getElementById('input');
-const titleInput = document.getElementById('title-input');
-let currentTab = 'preview';
-let parsedImages = [];
+// === 데이터 ===
+let postData = { title: '', tags: '', bodyTistory: '', bodyNaver: '', images: [] };
+let originalData = null;
+let mode = 'publisher', platform = 'tistory';
+let editingTitle = false, editingBody = false;
 
-// === 자동 저장 ===
-const LS_KEY = 'blog_publish_v2';
-function save() {
-  localStorage.setItem(LS_KEY, JSON.stringify({
-    title: titleInput.value,
-    body: input.value,
-    savedAt: new Date().toISOString()
-  }));
-  const d = new Date();
-  document.getElementById('save-info').textContent =
-    `자동 저장됨 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-}
-function restore() {
+// URL 해시에서 로드
+function loadFromHash() {
   try {
-    const s = JSON.parse(localStorage.getItem(LS_KEY));
-    if (s) {
-      titleInput.value = s.title || '';
-      input.value = s.body || '';
-      return true;
-    }
-  } catch(e) {}
-  return false;
-}
-let saveTimer;
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(save, 800);
+    const h = location.hash.slice(1);
+    if (!h) return false;
+    const data = JSON.parse(decodeURIComponent(escape(atob(h))));
+    postData = data;
+    originalData = JSON.parse(JSON.stringify(data));
+    return true;
+  } catch(e) { return false; }
 }
 
-// === 탭 ===
-function showTab(name) {
-  currentTab = name;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  ['preview','tistory','naver','naver-img'].forEach(n => {
-    document.getElementById(n + '-panel').classList.toggle('hidden', n !== name);
-  });
-  document.getElementById('btn-copy-tistory').classList.toggle('hidden', name !== 'tistory');
-  document.getElementById('btn-copy-naver').classList.toggle('hidden', name !== 'naver');
-  document.getElementById('btn-copy-imgguide').classList.toggle('hidden', name !== 'naver-img');
-  document.getElementById('btn-preview-copy').classList.toggle('hidden', name !== 'preview');
-  render();
-}
-
-// === 에디터 도구 ===
-function wrapSel(before, after) {
-  const s = input.selectionStart, e = input.selectionEnd;
-  const sel = input.value.slice(s, e);
-  input.value = input.value.slice(0, s) + before + sel + after + input.value.slice(e);
-  input.focus();
-  scheduleSave(); render();
-}
-function insertAt(text) {
-  const s = input.selectionStart;
-  const lineStart = input.value.lastIndexOf('\n', s - 1) + 1;
-  input.value = input.value.slice(0, lineStart) + text + input.value.slice(lineStart);
-  input.focus();
-  scheduleSave(); render();
-}
-
-// === 파싱 ===
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function isValidUrl(u) {
-  return /^https?:\/\//i.test(u);
-}
+// === 파싱 (제작 모드용) ===
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function isValidUrl(u){return /^https?:\/\//i.test(u);}
 
 function parse(md) {
-  const lines = md.split('\n');
-  const blocks = [];
+  const lines = md.split('\n'), blocks = [];
   let para = [], list = [];
-
-  function flushPara() {
-    if (para.length) { blocks.push({type:'p', text: para.join(' ')}); para = []; }
-  }
-  function flushList() {
-    if (list.length) { blocks.push({type:'ul', items: list}); list = []; }
-  }
+  const flushP = () => { if(para.length){blocks.push({type:'p',text:para.join(' ')});para=[];} };
+  const flushL = () => { if(list.length){blocks.push({type:'ul',items:list});list=[];} };
 
   for (let raw of lines) {
     const line = raw.trim();
-    if (!line) { flushPara(); flushList(); continue; }
-    if (line === '---') { flushPara(); flushList(); blocks.push({type:'hr'}); continue; }
-    if (line.startsWith('### ')) { flushPara(); flushList(); blocks.push({type:'h3', text: line.slice(4)}); continue; }
-    if (line.startsWith('## ')) { flushPara(); flushList(); blocks.push({type:'h2', text: line.slice(3)}); continue; }
-    if (line.startsWith('# ')) { flushPara(); flushList(); blocks.push({type:'h1', text: line.slice(2)}); continue; }
-    if (line.startsWith('> ')) { flushPara(); flushList(); blocks.push({type:'quote', text: line.slice(2)}); continue; }
-    if (/^[-*] /.test(line)) { flushPara(); list.push(line.slice(2)); continue; }
+    if (!line) { flushP(); flushL(); continue; }
+    if (line==='---'){flushP();flushL();blocks.push({type:'hr'});continue;}
+    if (line.startsWith('### ')){flushP();flushL();blocks.push({type:'h3',text:line.slice(4)});continue;}
+    if (line.startsWith('## ')){flushP();flushL();blocks.push({type:'h2',text:line.slice(3)});continue;}
+    if (line.startsWith('# ')){flushP();flushL();blocks.push({type:'h1',text:line.slice(2)});continue;}
+    if (line.startsWith('> ')){flushP();flushL();blocks.push({type:'quote',text:line.slice(2)});continue;}
+    if (/^[-*] /.test(line)){flushP();list.push(line.slice(2));continue;}
     const imgM = line.match(/^!\[(.*?)\]\((.*?)\)$/);
     if (imgM) {
-      flushPara(); flushList();
-      const src = imgM[2].trim();
-      if (!isValidUrl(src)) { blocks.push({type:'warn', text: `⚠️ 이미지 URL이 올바르지 않습니다: ${src}`}); continue; }
-      blocks.push({type:'img', alt: imgM[1], src});
+      flushP();flushL();
+      const src=imgM[2].trim();
+      if(!isValidUrl(src)){blocks.push({type:'warn',text:`이미지 URL 오류: ${src}`});continue;}
+      blocks.push({type:'img',alt:imgM[1],src});continue;
+    }
+    // 깨진 이미지/링크 문법: 원문 유지 + 경고
+    if (/!\[.*?\]/.test(line) && !imgM) {
+      flushP();flushL();
+      blocks.push({type:'warn',text:`이미지 문법 오류 (원문 유지): ${line.slice(0,50)}`});
+      blocks.push({type:'p',text:line});
       continue;
     }
-    // 지원하지 않는 이미지/링크 문법 감지
-    if (line.includes('![') || (line.includes('](') && !line.match(/\[.*?\]\(.*?\)/))) {
-      flushPara(); flushList();
-      blocks.push({type:'warn', text: `⚠️ 인식할 수 없는 문법: ${line.slice(0,40)}`});
-      continue;
-    }
-    flushList();
-    para.push(line);
+    flushL(); para.push(line);
   }
-  flushPara(); flushList();
+  flushP();flushL();
   return blocks;
 }
 
-function inlineFmt(text) {
-  text = esc(text);
-  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2">$1</a>');
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
-  return text;
+function inlineFmt(t){
+  t=esc(t);
+  // URL 경계 명확히: ) 뒤에 바로 한글이 오지 않도록
+  t=t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2">$1</a>');
+  t=t.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  return t;
 }
-function inlineNaver(text) {
-  // **굵게** → 굵게 (기호 제거)
-  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
-  // [텍스트](URL) → 텍스트: URL
-  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1: $2');
-  return text;
+function inlineNaver(t){
+  t=t.replace(/\*\*([^*]+)\*\*/g,'$1');
+  // 링크: URL 뒤에 문구가 붙지 않도록 괄호 처리
+  t=t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'$1 ($2)');
+  return t;
 }
 
-const P = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;line-height:1.7;";
-const H1 = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:14pt;font-weight:bold;line-height:1.55;";
-const H2 = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:13pt;font-weight:bold;line-height:1.55;";
-const H3 = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:12pt;font-weight:bold;line-height:1.55;";
-const CAP = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:10pt;line-height:1.7;text-align:center;";
-const QUOTE = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;line-height:1.7;border-left:3px solid #3498db;padding-left:12px;color:#555;";
-const LI = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;line-height:1.7;";
-function sp(px){ return `<div style="height:${px}px;line-height:${px}px;">&nbsp;</div>`; }
+const P="font-family:'맑은 고딕',sans-serif;font-size:11pt;line-height:1.7;";
+const H1="font-family:'맑은 고딕',sans-serif;font-size:14pt;font-weight:bold;line-height:1.55;";
+const H2="font-family:'맑은 고딕',sans-serif;font-size:13pt;font-weight:bold;line-height:1.55;";
+const H3="font-family:'맑은 고딕',sans-serif;font-size:12pt;font-weight:bold;line-height:1.55;";
+const CAP="font-family:'맑은 고딕',sans-serif;font-size:10pt;line-height:1.7;text-align:center;";
+const QUOTE="font-family:'맑은 고딕',sans-serif;font-size:11pt;line-height:1.7;border-left:3px solid #3498db;padding-left:12px;color:#555;";
+const LI="font-family:'맑은 고딕',sans-serif;font-size:11pt;line-height:1.7;";
+const sp=px=>`<div style="height:${px}px;line-height:${px}px;">&nbsp;</div>`;
 
-// 여백 중복 방지: 블록 사이 간격은 한 번만
-function genTistory(blocks) {
-  let html = '<div>\n';
-  let prevWasSpace = true;
-  const needSpace = (px) => { if (!prevWasSpace) html += sp(px) + '\n'; prevWasSpace = true; };
+function genTistory(blocks){
+  let html='<div>\n', prevSpace=true;
+  const need=px=>{if(!prevSpace)html+=sp(px)+'\n';prevSpace=true;};
+  blocks.forEach(b=>{
+    if(b.type==='p'){need(10);html+=`<p style="${P}">${inlineFmt(b.text)}</p>\n`;prevSpace=false;}
+    else if(b.type==='h1'){need(24);html+=`<div style="${H1}">${inlineFmt(b.text)}</div>\n`;prevSpace=false;}
+    else if(b.type==='h2'){need(26);html+=`<div style="${H2}">${inlineFmt(b.text)}</div>\n`;prevSpace=false;}
+    else if(b.type==='h3'){need(20);html+=`<div style="${H3}">${inlineFmt(b.text)}</div>\n`;prevSpace=false;}
+    else if(b.type==='ul'){need(10);html+=`<ul style="margin:0;padding-left:20px;">\n`;b.items.forEach(it=>html+=`<li style="${LI}">${inlineFmt(it)}</li>\n`);html+=`</ul>\n`;prevSpace=false;}
+    else if(b.type==='quote'){need(16);html+=`<div style="${QUOTE}">${inlineFmt(b.text)}</div>\n`;prevSpace=false;}
+    else if(b.type==='img'){need(22);html+=`<div style="text-align:center;">\n<img src="${esc(b.src)}" alt="${esc(b.alt)}" style="display:block;max-width:100%;height:auto;margin:0 auto;">\n</div>\n<p style="${CAP}">▲ ${esc(b.alt)}</p>\n`;prevSpace=true;html+=sp(22)+'\n';}
+    else if(b.type==='hr'){need(24);}
+  });
+  return html+'</div>';
+}
 
-  blocks.forEach(b => {
-    if (b.type === 'p') {
-      needSpace(10);
-      html += `<p style="${P}">${inlineFmt(b.text)}</p>\n`;
-      prevWasSpace = false;
-    } else if (b.type === 'h1') {
-      needSpace(24);
-      html += `<div style="${H1}">${inlineFmt(b.text)}</div>\n`;
-      prevWasSpace = false;
-    } else if (b.type === 'h2') {
-      needSpace(26);
-      html += `<div style="${H2}">${inlineFmt(b.text)}</div>\n`;
-      prevWasSpace = false;
-    } else if (b.type === 'h3') {
-      needSpace(20);
-      html += `<div style="${H3}">${inlineFmt(b.text)}</div>\n`;
-      prevWasSpace = false;
-    } else if (b.type === 'ul') {
-      needSpace(10);
-      html += `<ul style="margin:0;padding-left:20px;">\n`;
-      b.items.forEach(it => { html += `<li style="${LI}">${inlineFmt(it)}</li>\n`; });
-      html += `</ul>\n`;
-      prevWasSpace = false;
-    } else if (b.type === 'quote') {
-      needSpace(16);
-      html += `<div style="${QUOTE}">${inlineFmt(b.text)}</div>\n`;
-      prevWasSpace = false;
-    } else if (b.type === 'img') {
-      needSpace(22);
-      html += `<div style="text-align:center;">\n<img src="${esc(b.src)}" alt="${esc(b.alt)}" style="display:block;max-width:100%;height:auto;margin:0 auto;">\n</div>\n`;
-      html += `<p style="${CAP}">▲ ${esc(b.alt)}</p>\n`;
-      prevWasSpace = true; // 이미지 뒤는 캡션까지 한 세트
-      html += sp(22) + '\n';
-    } else if (b.type === 'hr') {
-      needSpace(24);
-    } else if (b.type === 'warn') {
-      html += `<!-- ${esc(b.text)} -->\n`;
+// 네이버 본문: 이미지 완전 제거, 위치는 별도 안내
+function genNaverBody(blocks){
+  let txt='', imgPositions=[];
+  let paraCount=0;
+  blocks.forEach(b=>{
+    if(b.type==='p'){paraCount++;txt+=inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='h1'){txt+='\n■ '+inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='h2'){txt+='\n■ '+inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='h3'){txt+='\n▸ '+inlineNaver(b.text)+'\n\n';}
+    else if(b.type==='ul'){b.items.forEach(it=>txt+='• '+inlineNaver(it)+'\n');txt+='\n';}
+    else if(b.type==='quote'){txt+='❝ '+inlineNaver(b.text)+' ❞\n\n';}
+    else if(b.type==='img'){
+      // 본문에서는 제거, 위치만 기록
+      imgPositions.push({afterPara: paraCount, alt: b.alt, src: b.src, index: imgPositions.length});
     }
+    else if(b.type==='hr'){txt+='\n───\n\n';}
   });
-  html += '</div>';
-  return html;
+  return {body: txt.trim(), imgPositions};
 }
 
-function genNaver(blocks) {
-  let txt = '';
-  blocks.forEach(b => {
-    if (b.type === 'p') txt += inlineNaver(b.text) + '\n\n';
-    else if (b.type === 'h1') txt += '\n■ ' + inlineNaver(b.text) + '\n\n';
-    else if (b.type === 'h2') txt += '\n■ ' + inlineNaver(b.text) + '\n\n';
-    else if (b.type === 'h3') txt += '\n▸ ' + inlineNaver(b.text) + '\n\n';
-    else if (b.type === 'ul') b.items.forEach(it => { txt += '• ' + inlineNaver(it) + '\n'; }), txt += '\n';
-    else if (b.type === 'quote') txt += '❝ ' + inlineNaver(b.text) + ' ❞\n\n';
-    else if (b.type === 'img') txt += `\n[이미지] ${b.alt}\n\n`;
-    else if (b.type === 'hr') txt += '\n───\n\n';
-  });
-  return txt.trim();
-}
+// === 렌더링 ===
+function render(){
+  const warns = [];
+  // 경고 수집
+  const blocks = parse(postData.bodyTistory || postData.bodyNaver || '');
+  blocks.filter(b=>b.type==='warn').forEach(b=>warns.push(b.text));
 
-function genNaverImgGuide(blocks) {
-  let txt = '=== 이미지 배치 안내 (발행 시 이 부분은 지우세요) ===\n\n';
-  let n = 0;
-  blocks.forEach(b => {
-    if (b.type === 'img') {
-      n++;
-      txt += `${n}. [${b.alt}]\n   ${b.src}\n\n`;
-    }
-  });
-  if (!n) txt += '(이미지 없음)\n';
-  return txt;
-}
+  const wEl = document.getElementById('warnings');
+  wEl.innerHTML = warns.length
+    ? warns.map(w=>`<div class="warn-box">⚠️ ${esc(w)}</div>`).join('')
+    : '';
 
-function render() {
-  const blocks = parse(input.value);
-  parsedImages = blocks.filter(b => b.type === 'img');
+  // 제목
+  document.getElementById('title-display').textContent = postData.title || '(제목 없음)';
+  // 태그
+  document.getElementById('tags-display').textContent = postData.tags || '(태그 없음)';
 
-  document.getElementById('tistory-code').textContent = genTistory(blocks);
-  document.getElementById('naver-text').textContent = genNaver(blocks);
-  document.getElementById('naver-img-guide').textContent = genNaverImgGuide(blocks);
-  document.getElementById('preview').innerHTML = genTistory(blocks);
+  // 플랫폼별
+  const isT = platform==='tistory';
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('active',t.dataset.p===platform));
+  document.getElementById('tistory-actions').classList.toggle('hidden',!isT);
+  document.getElementById('naver-actions').classList.toggle('hidden',isT);
+  document.getElementById('btn-zip').classList.toggle('hidden',isT);
 
-  // 이미지 목록
-  const listEl = document.getElementById('img-list');
-  if (!parsedImages.length) {
-    listEl.innerHTML = '<div style="color:#999;">이미지가 없습니다.</div>';
+  if(isT){
+    const b = parse(postData.bodyTistory);
+    document.getElementById('preview').innerHTML = genTistory(b);
   } else {
-    listEl.innerHTML = parsedImages.map((im, i) =>
-      `<div><span>${String(i+1).padStart(2,'0')}. ${esc(im.alt.slice(0,30))}</span><button onclick="downloadOne(${i})">다운로드</button></div>`
-    ).join('');
+    const b = parse(postData.bodyNaver);
+    const {body, imgPositions} = genNaverBody(b);
+    // 네이버 미리보기: 텍스트 + 이미지 위치 표시
+    let pv = esc(body).replace(/\n/g,'<br>');
+    document.getElementById('preview').innerHTML = `<div style="${P}">${pv}</div>`;
+    // 이미지 안내
+    renderImgGuide(imgPositions);
+  }
+
+  // 티스토리 이미지 안내
+  if(isT){
+    const b = parse(postData.bodyTistory);
+    const imgs = b.filter(x=>x.type==='img');
+    renderImgGuideTistory(imgs);
   }
 }
 
-// === 복사 (성공 확인 포함) ===
-function doCopy(text) {
-  return new Promise((resolve) => {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    let ok = false;
-    try { ok = document.execCommand('copy'); } catch(e) {}
+function renderImgGuide(positions){
+  const el = document.getElementById('img-guide-list');
+  if(!positions.length){el.innerHTML='<p style="color:#999;font-size:13px;">이미지가 없습니다.</p>';return;}
+  el.innerHTML = positions.map((p,i)=>
+    `<div class="img-guide-item">
+      <div class="info"><span class="pos">${i+1}.</span> ${esc(p.alt)}<br>
+      <span style="color:#888;font-size:11px;">→ ${p.afterPara}번째 문단 뒤에 삽입</span></div>
+      <button class="btn btn-orange" style="margin:0;" onclick="downloadImgByIndex(${i},'naver')">⬇️</button>
+    </div>`).join('');
+}
+function renderImgGuideTistory(imgs){
+  const el = document.getElementById('img-guide-list');
+  if(!imgs.length){el.innerHTML='<p style="color:#999;font-size:13px;">이미지가 없습니다.</p>';return;}
+  el.innerHTML = imgs.map((im,i)=>
+    `<div class="img-guide-item">
+      <div class="info"><span class="pos">${i+1}.</span> ${esc(im.alt)}</div>
+      <button class="btn btn-orange" style="margin:0;" onclick="downloadImgByIndex(${i},'tistory')">⬇️</button>
+    </div>`).join('');
+}
+
+// === 복사 ===
+function doCopy(text){
+  return new Promise(res=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    let ok=false;
+    try{ok=document.execCommand('copy');}catch(e){}
     document.body.removeChild(ta);
-    if (ok) { resolve(true); return; }
-    // fallback
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => resolve(true)).catch(() => resolve(false));
-    } else resolve(false);
+    if(ok){res(true);return;}
+    if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>res(true)).catch(()=>res(false));}
+    else res(false);
   });
 }
-async function copyTab(which) {
-  const map = {tistory: 'tistory-code', naver: 'naver-text', 'naver-img': 'naver-img-guide'};
-  const text = document.getElementById(map[which]).textContent;
-  if (!text.trim()) { alert('복사할 내용이 없습니다.'); return; }
-  const ok = await doCopy(text);
-  if (ok) alert('📋 복사됐습니다!');
-  else alert('⚠️ 자동 복사에 실패했습니다.\n내용을 드래그하여 수동으로 복사(Ctrl+C)해주세요.');
+async function copyTitle(){
+  const ok=await doCopy(postData.title||'');
+  alert(ok?'📋 제목 복사됨!':'⚠️ 복사 실패. 수동으로 복사해주세요.');
 }
-async function copyTitle() {
-  const t = titleInput.value.trim();
-  if (!t) { alert('제목을 입력하세요.'); return; }
-  const ok = await doCopy(t);
-  alert(ok ? '📋 제목 복사됐습니다!' : '⚠️ 복사 실패. 수동으로 복사해주세요.');
+async function copyTags(){
+  const ok=await doCopy(postData.tags||'');
+  alert(ok?'📋 태그 복사됨!':'⚠️ 복사 실패. 수동으로 복사해주세요.');
+}
+async function copyTistoryHTML(){
+  const html=genTistory(parse(postData.bodyTistory));
+  const ok=await doCopy(html);
+  alert(ok?'📋 HTML 복사됨!':'⚠️ 복사 실패. 수동으로 복사해주세요.');
+}
+async function copyNaverBody(){
+  const {body}=genNaverBody(parse(postData.bodyNaver));
+  const ok=await doCopy(body);
+  alert(ok?'📋 본문 복사됨!':'⚠️ 복사 실패. 수동으로 복사해주세요.');
+}
+
+// === 문구 수정 ===
+function toggleTitleEdit(){
+  editingTitle=!editingTitle;
+  document.getElementById('title-display').classList.toggle('hidden',editingTitle);
+  document.getElementById('title-edit-wrap').classList.toggle('hidden',!editingTitle);
+  document.getElementById('btn-title-restore').classList.toggle('hidden',!editingTitle);
+  document.getElementById('btn-edit-title').textContent=editingTitle?'✅ 완료':'✏️ 문구 수정';
+  if(editingTitle){document.getElementById('title-edit').value=postData.title;}
+  else{postData.title=document.getElementById('title-edit').value;render();}
+}
+function restoreTitle(){
+  postData.title=originalData.title;
+  toggleTitleEdit();
+}
+function toggleBodyEdit(){
+  editingBody=!editingBody;
+  document.getElementById('body-edit-wrap').classList.toggle('hidden',!editingBody);
+  document.getElementById('btn-body-restore').classList.toggle('hidden',!editingBody);
+  document.getElementById('btn-edit-body').textContent=editingBody?'✅ 완료':'✏️ 문구 수정';
+  const key=platform==='tistory'?'bodyTistory':'bodyNaver';
+  if(editingBody){
+    // 마크다운을 일반 텍스트로 변환해서 보여줌
+    document.getElementById('body-edit').value=mdToPlain(postData[key]);
+  } else {
+    postData[key]=plainToMd(document.getElementById('body-edit').value, postData[key]);
+    render();
+  }
+}
+function restoreBody(){
+  const key=platform==='tistory'?'bodyTistory':'bodyNaver';
+  postData[key]=originalData[key];
+  toggleBodyEdit();
+}
+// 마크다운 → 일반 텍스트 (수정을 위해)
+function mdToPlain(md){
+  return md
+    .replace(/^#{1,3} /gm,'')
+    .replace(/^[-*] /gm,'• ')
+    .replace(/^> /gm,'')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g,'[이미지: $1]')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+    .replace(/\*\*/g,'')
+    .replace(/^---$/gm,'───');
+}
+// 일반 텍스트 → 마크다운 (이미지/서식 유지하며 텍스트만 교체)
+function plainToMd(plain, originalMd){
+  // 간단한 방식: 문단 구조는 유지하고 텍스트만 교체
+  // 실제로는 원본 마크다운의 구조를 보존하면서 텍스트 노드만 교체해야 하지만,
+  // v3에서는 전체를 일반 텍스트 마크다운으로 변환
+  return plain
+    .replace(/^• /gm,'- ')
+    .replace(/^───$/gm,'---')
+    .replace(/\[이미지: ([^\]]+)\]/g,(m,alt)=>{
+      // 원본에서 해당 alt의 이미지 URL 찾기
+      const match=originalMd.match(new RegExp(`!\\[${alt.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\]\\(([^)]+)\\)`));
+      return match?`![${alt}](${match[1]})`:m;
+    });
 }
 
 // === 이미지 다운로드 ===
-async function fetchImage(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const blob = await res.blob();
-  if (!blob.type.startsWith('image/')) throw new Error('이미지가 아닙니다: ' + blob.type);
-  return blob;
+function getImages(which){
+  const key=which==='tistory'?'bodyTistory':'bodyNaver';
+  return parse(postData[key]).filter(b=>b.type==='img');
 }
-function blobExt(blob) {
-  if (blob.type.includes('png')) return 'png';
-  if (blob.type.includes('webp')) return 'webp';
-  if (blob.type.includes('gif')) return 'gif';
-  return 'jpg';
+async function fetchImg(url){
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const b=await r.blob();
+  if(!b.type.startsWith('image/'))throw new Error('이미지 아님: '+b.type);
+  return b;
 }
-async function downloadOne(i) {
-  const im = parsedImages[i];
-  if (!im) return;
-  try {
-    const blob = await fetchImage(im.src);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${String(i+1).padStart(2,'0')}_${im.alt.slice(0,20).replace(/[\\/:*?"<>|]/g,'')}.${blobExt(blob)}`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  } catch(e) {
-    alert('다운로드 실패: ' + e.message);
+function ext(b){return b.type.includes('png')?'png':b.type.includes('webp')?'webp':b.type.includes('gif')?'gif':'jpg';}
+async function downloadImgByIndex(i,which){
+  const imgs=getImages(which), im=imgs[i];
+  if(!im)return;
+  try{
+    const blob=await fetchImg(im.src);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`${String(i+1).padStart(2,'0')}_${im.alt.slice(0,20).replace(/[\\/:*?"<>|]/g,'')}.${ext(blob)}`;
+    a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  }catch(e){alert('다운로드 실패: '+e.message);}
+}
+async function downloadFeatured(){
+  const imgs=getImages(platform);
+  if(!imgs.length){alert('이미지가 없습니다.');return;}
+  try{
+    const blob=await fetchImg(imgs[0].src);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`featured.${ext(blob)}`;
+    a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  }catch(e){alert('다운로드 실패: '+e.message);}
+}
+async function downloadAllZip(){
+  const imgs=getImages('naver');
+  if(!imgs.length){alert('이미지가 없습니다.');return;}
+  if(typeof JSZip==='undefined'){alert('ZIP 로드 중. 잠시 후 다시 시도.');return;}
+  const zip=new JSZip();let ok=0,fail=[];
+  for(let i=0;i<imgs.length;i++){
+    try{
+      const blob=await fetchImg(imgs[i].src);
+      zip.file(`${String(i+1).padStart(2,'0')}_${imgs[i].alt.slice(0,20).replace(/[\\/:*?"<>|]/g,'')}.${ext(blob)}`,blob);
+      ok++;
+    }catch(e){fail.push(imgs[i].alt);}
   }
-}
-async function downloadAllImages() {
-  if (!parsedImages.length) { alert('다운로드할 이미지가 없습니다.'); return; }
-  if (typeof JSZip === 'undefined') { alert('ZIP 라이브러리 로드 중입니다. 잠시 후 다시 시도하세요.'); return; }
-  const zip = new JSZip();
-  let okCount = 0, failList = [];
-  for (let i = 0; i < parsedImages.length; i++) {
-    const im = parsedImages[i];
-    try {
-      const blob = await fetchImage(im.src);
-      const name = `${String(i+1).padStart(2,'0')}_${im.alt.slice(0,20).replace(/[\\/:*?"<>|]/g,'')}.${blobExt(blob)}`;
-      zip.file(name, blob);
-      okCount++;
-    } catch(e) { failList.push(`${i+1}. ${im.alt}`); }
-  }
-  // 안내 파일
-  let guide = '이미지 삽입 순서 안내\n====================\n\n';
-  parsedImages.forEach((im, i) => { guide += `${i+1}. ${im.alt}\n   ${im.src}\n\n`; });
-  zip.file('_삽입안내.txt', guide);
-
-  const content = await zip.generateAsync({type: 'blob'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(content);
-  a.download = 'blog-images.zip';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-  alert(`✅ ${okCount}개 다운로드 완료` + (failList.length ? `\n⚠️ 실패: ${failList.join(', ')}` : ''));
+  let guide='이미지 삽입 안내\n================\n\n';
+  imgs.forEach((im,i)=>guide+=`${i+1}. ${im.alt}\n   ${im.src}\n\n`);
+  zip.file('_삽입안내.txt',guide);
+  const c=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(c);a.download='blog-images.zip';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  alert(`✅ ${ok}개 완료`+(fail.length?`\n⚠️ 실패: ${fail.join(', ')}`:''));
 }
 
-function loadSample() {
-  if (input.value.trim() && !confirm('현재 내용이 지워집니다. 샘플을 불러올까요?')) return;
-  titleInput.value = '제품 사진에 손 하나를 넣었을 뿐인데';
-  input.value = `# 제품 사진의 주인공은 제품이 아니었다
+// === 모드/플랫폼 ===
+function setMode(m){
+  mode=m;
+  document.getElementById('btn-publisher').classList.toggle('active',m==='publisher');
+  document.getElementById('btn-creator').classList.toggle('active',m==='creator');
+  document.getElementById('creator-area').classList.toggle('hidden',m!=='creator');
+}
+function setPlatform(p){platform=p;render();}
 
-집에서 새 삼각대의 리뷰 사진을 찍고 있었습니다.
-
-## 컵 손잡이를 돌렸을 뿐인데
-
-머그컵 하나를 떠올려보겠습니다.
-
-- 첫 번째 항목
-- 두 번째 항목
-
-> 인용문 예시입니다.
-
-![울란지 MT71 단독](https://rivaljin.github.io/nampy-blog-assets/2026/10/product-photo-hand/01.webp)
-
-### 작은 소제목
-
-**굵은 강조**와 [링크 예시](https://nampy.tistory.com)입니다.
-
----
-`;
-  scheduleSave(); render();
+// === 제작 모드 ===
+function applyCreator(){
+  postData={
+    title:document.getElementById('creator-title').value,
+    tags:document.getElementById('creator-tags').value,
+    bodyTistory:document.getElementById('md-input').value,
+    bodyNaver:document.getElementById('md-input').value,
+    images:[]
+  };
+  originalData=JSON.parse(JSON.stringify(postData));
+  render();
+  alert('✅ 적용됨! 발행 모드에서 확인하세요.');
+}
+function genShareLink(){
+  applyCreator();
+  const json=JSON.stringify(postData);
+  const b64=btoa(unescape(encodeURIComponent(json)));
+  const url=location.origin+location.pathname+'#'+b64;
+  document.getElementById('share-link').value=url;
+}
+async function copyShareLink(){
+  const v=document.getElementById('share-link').value;
+  if(!v){alert('먼저 발행 링크를 생성하세요.');return;}
+  const ok=await doCopy(v);
+  alert(ok?'📋 링크 복사됨!':'⚠️ 복사 실패.');
 }
 
 // === 초기화 ===
-input.addEventListener('input', () => { scheduleSave(); render(); });
-titleInput.addEventListener('input', scheduleSave);
-if (!restore()) {
-  // 첫 방문: 비어 있는 상태로 시작
+if(loadFromHash()){
+  // 해시에서 로드됨
+} else {
+  // 데모 데이터
+  postData={
+    title:'(제목이 여기에 표시됩니다)',
+    tags:'태그1, 태그2, 태그3',
+    bodyTistory:'# 소제목\n\n본문이 여기에 표시됩니다.',
+    bodyNaver:'# 소제목\n\n본문이 여기에 표시됩니다.',
+    images:[]
+  };
+  originalData=JSON.parse(JSON.stringify(postData));
 }
 render();
 </script>
