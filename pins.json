@@ -1,7 +1,7 @@
 {
   "title": "Vietnam Map - Hanoi to Sapa",
-  "total": 58,
-  "updated": "2026-10-11",
+  "total": 60,
+  "updated": "2026-10-18",
   "pins": [
     {
       "n": 1,
@@ -640,6 +640,28 @@
       "category": "sight",
       "region": "sapa",
       "note": "Cable car + peak rail / 케이블카+정상레일, ticket RZS350854"
+    },
+    {
+      "n": 59,
+      "label": "Café Giảng",
+      "labelKo": "카페지앙 · 에그커피 원조",
+      "address": "39 Nguyễn Hữu Huân, Hoàn Kiếm, Hà Nội",
+      "lat": 21.03354,
+      "lng": 105.85467,
+      "region": "hanoi",
+      "note": "Friday 12:50–13:20 after Hoan Kiem Lake. Hot egg coffee; daily 07:00–22:00, menu range 35K–60K VND (official). / 금요일 호수 산책 후 에그커피. 매일 07:00–22:00, 공식 안내 메뉴 가격대 3.5만–6만동. 좁은 골목 입구 확인.",
+      "category": "food"
+    },
+    {
+      "n": 60,
+      "label": "LOTTE MART Ba Dinh",
+      "labelKo": "롯데마트 바딘점 · 과자·커피 선물",
+      "address": "54 Liễu Giai, Ba Đình, Hà Nội",
+      "lat": 21.03227,
+      "lng": 105.81261,
+      "region": "hanoi",
+      "note": "Friday 08:40–09:15: Tran Quoc → Lotte Center B1 → Temple of Literature by Grab. Daily 07:30–22:00 (official store listing). Snacks, coffee and dried fruit; not West Lake Mall. / 금요일 쩐꾸옥 사원 → 롯데센터 지하 1층 → 문묘 차량 동선. 공식 매장 안내 07:30–22:00. 과자·커피·말린 과일 쇼핑, 웨스트레이크점과 구분. 선물은 사파까지 운반하므로 부피 고려.",
+      "category": "sight"
     }
   ]
 }
