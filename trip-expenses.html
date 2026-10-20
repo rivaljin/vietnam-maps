@@ -78,7 +78,15 @@ input[type=text],input[type=number],input[type=date]{width:100%;padding:12px;bor
 </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="card">
+<p>경비는 이 기기에만 저장됩니다. 매일 백업 파일을 보관하세요.</p>
+<div class="btns">
+<button onclick="exportExpenses()">경비 백업</button>
+<button onclick="document.getElementById('restore-file').click()">백업 복원</button>
+</div>
+<input id="restore-file" type="file" accept="application/json,.json" hidden onchange="restoreExpenses(this)">
+</div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 const CATS=[
@@ -121,7 +129,36 @@ const SEED=[
  {date:'2026-10-11',cat:'관광',item:'Sun World 판시판 레전드 티켓 2인 (모노레일+케이블카+정상레일 왕복)',amt:137778,cur:'KRW'}
 ];
 function load(){try{const raw=localStorage.getItem(KEY);if(raw===null){localStorage.setItem(KEY,JSON.stringify(SEED));return SEED.slice()}return JSON.parse(raw)||[]}catch(e){return[]}}
-function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
+function save(d){
+ try{localStorage.setItem(KEY,JSON.stringify(d));return true}
+ catch(e){alert('저장하지 못했습니다. 저장 공간을 확인하고 기존 경비를 백업하세요.');return false}
+}
+function vietnamDate(now=new Date()){
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+ const get=t=>parts.find(p=>p.type===t).value;
+ return get('year')+'-'+get('month')+'-'+get('day');
+}
+function exportExpenses(){
+ const blob=new Blob([JSON.stringify({version:1,entries:load()},null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vietnam-expenses-'+vietnamDate()+'.json';a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+}
+async function restoreExpenses(input){
+ try{
+  const file=input.files[0];if(!file)return;
+  if(file.size>2*1024*1024)throw new Error('백업 파일이 너무 큽니다.');
+  const data=JSON.parse(await file.text());
+  if(data.version!==1||!Array.isArray(data.entries)||data.entries.length>10000)throw new Error('지원하지 않는 백업 형식입니다.');
+  const entries=data.entries.map(e=>{
+   if(!e||typeof e.item!=='string'||e.item.length>2000||typeof e.cat!=='string'||e.cat.length>50||
+      typeof e.date!=='string'||!(/^(?:|\d{4}-\d{2}-\d{2})$/).test(e.date)||
+      !['VND','KRW'].includes(e.cur)||typeof e.amt!=='number'||!Number.isFinite(e.amt)||e.amt<=0)throw new Error('올바르지 않은 경비 항목입니다.');
+   return {date:e.date,cat:e.cat,item:e.item,amt:e.amt,cur:e.cur};
+  });
+  if(!confirm('현재 경비를 백업 파일의 '+entries.length+'건으로 교체할까요? 먼저 현재 경비를 백업하세요.'))return;
+  if(save(entries)){render();toast('백업 복원 완료 ✓');}
+ }catch(e){alert('복원 실패: '+e.message)}finally{input.value='';}
+}
 function fmt(n){return Number(n).toLocaleString('en-US')}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function setCur(c){cur=c;document.getElementById('curVND').classList.toggle('on',c==='VND');document.getElementById('curKRW').classList.toggle('on',c==='KRW')}
@@ -130,17 +167,17 @@ function renderCats(){
  CATS.forEach(o=>{const d=document.createElement('div');d.className='cat'+(o.k===sel?' on':'');d.innerHTML=o.k+'<small>'+o.e+'</small>';d.onclick=()=>{sel=o.k;renderCats()};el.appendChild(d)});
 }
 function add(){
- const date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
+ const date=document.getElementById('date').value||vietnamDate();
  const item=document.getElementById('item').value.trim();
  const amt=parseFloat(document.getElementById('amt').value);
  if(!item){toast('항목을 입력해줘');return}
- if(!amt||amt<=0){toast('금액을 입력해줘');return}
+ if(!Number.isFinite(amt)||amt<=0){toast('금액을 입력해줘');return}
  const d=load();d.push({date,cat:sel,item,amt,cur});
- save(d);document.getElementById('item').value='';document.getElementById('amt').value='';
+ if(!save(d))return;document.getElementById('item').value='';document.getElementById('amt').value='';
  render();toast('기록됐어 ✓');
 }
-function del(i){if(!confirm('이 기록을 삭제할까?'))return;const d=load();d.splice(i,1);save(d);render()}
-function clearAll(){if(!confirm('전부 삭제할까? 되돌릴 수 없어!'))return;if(!confirm('정말로 다 지울까?'))return;save([]);render();toast('다 지웠어')}
+function del(i){if(!confirm('이 기록을 삭제할까?'))return;const d=load();d.splice(i,1);if(save(d))render()}
+function clearAll(){if(!confirm('전부 삭제할까? 되돌릴 수 없어!'))return;if(!confirm('정말로 다 지울까?'))return;if(!save([]))return;render();toast('다 지웠어')}
 function catColor(k){const o=CATS.find(c=>c.k===k);return o?o.c:'#8e8e93'}
 function render(){
  const d=load();
@@ -148,14 +185,14 @@ function render(){
  if(!d.length){list.innerHTML='<div class="empty">아직 기록이 없어<br>위에서 추가해봐!</div>'}
  else{list.innerHTML='';d.forEach((e,i)=>{
   const div=document.createElement('div');div.className='entry';
-  div.innerHTML='<span class="chip" style="background:'+catColor(e.cat)+'">'+e.cat+'</span><div class="info"><div class="item">'+esc(e.item)+'</div><div class="date">'+e.date+'</div></div><div class="amt">'+(e.cur==='VND'?'₫':'₩')+fmt(e.amt)+'</div><button class="del" onclick="del('+i+')">×</button>';
+  div.innerHTML='<span class="chip" style="background:'+catColor(e.cat)+'">'+esc(e.cat)+'</span><div class="info"><div class="item">'+esc(e.item)+'</div><div class="date">'+e.date+'</div></div><div class="amt">'+(e.cur==='VND'?'₫':'₩')+fmt(e.amt)+'</div><button class="del" onclick="del('+i+')">×</button>';
   list.appendChild(div);
  });}
- const tV={},tK={};let sV=0,sK=0;
+ const tV=Object.create(null),tK=Object.create(null);let sV=0,sK=0;
  d.forEach(e=>{if(e.cur==='VND'){tV[e.cat]=(tV[e.cat]||0)+e.amt;sV+=e.amt}else{tK[e.cat]=(tK[e.cat]||0)+e.amt;sK+=e.amt}});
  let h='';
- Object.keys(tV).forEach(k=>{h+='<div class="row"><span>'+k+'</span><span>₫'+fmt(tV[k])+'</span></div>'});
- Object.keys(tK).forEach(k=>{h+='<div class="row"><span>'+k+'</span><span>₩'+fmt(tK[k])+'</span></div>'});
+ Object.keys(tV).forEach(k=>{h+='<div class="row"><span>'+esc(k)+'</span><span>₫'+fmt(tV[k])+'</span></div>'});
+ Object.keys(tK).forEach(k=>{h+='<div class="row"><span>'+esc(k)+'</span><span>₩'+fmt(tK[k])+'</span></div>'});
  if(!h)h='<div class="empty" style="padding:8px">기록이 없어</div>';
  h+='<div class="grand"><div class="row"><span>총합 Total</span><span>₫'+fmt(sV)+' / ₩'+fmt(sK)+'</span></div></div>';
  document.getElementById('totals').innerHTML=h;
@@ -163,7 +200,7 @@ function render(){
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function copySum(){
  const d=load();if(!d.length){toast('기록이 없어');return}
- const g={};
+ const g=Object.create(null);
  d.forEach(e=>{const k=e.cat+' ('+e.cur+')';g[k]=g[k]||[];g[k].push(e)});
  let t='🧾 하노이·사파 여행 경비\n\n';
  Object.keys(g).forEach(k=>{t+='['+k+']\n';let s=0;g[k].forEach(e=>{t+='- '+e.item+': '+(e.cur==='VND'?'₫':'₩')+fmt(e.amt)+' ('+e.date+')\n';s+=e.amt});t+='소계: '+(g[k][0].cur==='VND'?'₫':'₩')+fmt(s)+'\n\n'});
@@ -171,8 +208,9 @@ function copySum(){
  t+='━━━━━━━━\n총합: ₫'+fmt(sV)+' / ₩'+fmt(sK);
  navigator.clipboard.writeText(t).then(()=>toast('요약 복사됐어 ✓')).catch(()=>toast('복사 실패'));
 }
-document.getElementById('date').value=new Date().toISOString().slice(0,10);
+document.getElementById('date').value=vietnamDate();
 renderCats();render();
 </script>
+<script src="./offline.js" defer></script>
 </body>
 </html>
